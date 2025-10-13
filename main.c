@@ -17,6 +17,9 @@ int main(int argc,char* argv[],char* envp[]){
 
     if(strcmp(argv[1],"-run") == 0){
         printf("executing -run to process\n");
+            char executble_path[50];
+            strncpy(executble_path,argv[2],sizeof(executble_path));
+
         pid_t child_pid = fork();
         
 
