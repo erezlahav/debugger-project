@@ -80,16 +80,16 @@ uint16_t get_number_of_symbols_from_symbol_sh(Elf64_Shdr* symbol_section_header)
     return (uint16_t)(symbol_section_header->sh_size / symbol_section_header->sh_entsize);
 }
 
-uint32_t get_strtab_sh_index_from_symtab_sh(Elf64_Shdr* symtab_section_header){
-    return symtab_section_header->sh_link;
+uint32_t get_string_table_index_for_symbol_sh(Elf64_Shdr* symbol_section_header){
+    return symbol_section_header->sh_link;
 }
 
 
-Elf64_Shdr* get_strtab_sh_pointer(Elf64_Shdr* first_section_header,uint32_t index_number){
+Elf64_Shdr* get_section_header_from_offset(Elf64_Shdr* first_section_header,uint32_t index_number){
     return first_section_header+index_number;
 }
 
-char* get_strtab_values(Elf64_Shdr* strtab_sh,FILE* elf_file_ptr){
+char* get_string_table_values_from_string_table_sh(Elf64_Shdr* strtab_sh,FILE* elf_file_ptr){
     char* strtab_values = malloc(strtab_sh->sh_size);
 
     fseek(elf_file_ptr,strtab_sh->sh_offset,SEEK_SET);
@@ -99,24 +99,30 @@ char* get_strtab_values(Elf64_Shdr* strtab_sh,FILE* elf_file_ptr){
 }
 
 
-symbol* get_symtab_symbols(Elf64_Shdr* symtab_section_header,Elf64_Shdr* strtab_sh, FILE* elf_file_ptr){
-    Elf64_Sym* symbols = get_symbols_from_symbol_section_header(symtab_section_header,elf_file_ptr);
-    char* strtab_values = get_strtab_values(strtab_sh,elf_file_ptr);
-    uint16_t number_of_symbols = get_number_of_symbols_from_symbol_sh(symtab_section_header);
-
-    symbol* symtab_symbols = malloc(sizeof(symbol) * number_of_symbols);
+symbol* get_symbols_from_section_header_symbol(Elf64_Shdr* symbol_section_header,Elf64_Shdr* string_table_sh, FILE* elf_file_ptr){
+    Elf64_Sym* symbols = get_symbols_from_symbol_section_header(symbol_section_header,elf_file_ptr);
+    char* strtab_values = get_string_table_values_from_string_table_sh(string_table_sh,elf_file_ptr);
+    uint16_t number_of_symbols = get_number_of_symbols_from_symbol_sh(symbol_section_header);
+    symbol_table_type table_type;
+    if(symbol_section_header->sh_type == SHT_SYMTAB){
+        table_type = symtab;
+    }
+    else if(symbol_section_header->sh_type == SHT_DYNSYM){
+        table_type = dynsym;
+    }
+    symbol* symbols_to_return = malloc(sizeof(symbol) * number_of_symbols);
     for(int i = 0; i < number_of_symbols;i++){
         if(symbols[i].st_info == STT_FUNC){
-            symtab_symbols[i].type = FUNC;
+            symbols_to_return[i].type = FUNC;
         }
         char* symbol_name = strtab_values + symbols[i].st_name;
-        symtab_symbols[i].name = malloc(strlen(symbol_name)+1);
-        strncpy(symtab_symbols[i].name,symbol_name, strlen(symbol_name)+1);
-        symtab_symbols[i].adress = symbols[i].st_value;
-        symtab_symbols[i].size = symbols[i].st_size;
-        symtab_symbols[i].table_type = symtab;
+        symbols_to_return[i].name = malloc(strlen(symbol_name)+1);
+        strncpy(symbols_to_return[i].name,symbol_name, strlen(symbol_name)+1);
+        symbols_to_return[i].adress = symbols[i].st_value;
+        symbols_to_return[i].size = symbols[i].st_size;
+        symbols_to_return[i].table_type = table_type;
     }
-    return symtab_symbols;
+    return symbols_to_return;
 }
 
 symbol* get_symbols_from_file(FILE* elf_file_ptr){
@@ -125,27 +131,50 @@ symbol* get_symbols_from_file(FILE* elf_file_ptr){
     uint16_t number_of_section_headers = get_number_of_section_headers(elf_header);
     Elf64_Shdr* symtab_section_header = get_section_header_by_type(section_headers,SHT_SYMTAB,number_of_section_headers);
     Elf64_Shdr* dynsym_section_header = get_section_header_by_type(section_headers,SHT_DYNSYM,number_of_section_headers);
+    symbol* symbols_to_return;
     //get symtab symbols
     symbol* symtab_symbols;
     if(symtab_section_header != NULL){
-        uint32_t strtab_index = get_strtab_sh_index_from_symtab_sh(symtab_section_header);
-        Elf64_Shdr* strtab_sh = get_strtab_sh_pointer(section_headers,strtab_index);
-        symtab_symbols = get_symtab_symbols(symtab_section_header,strtab_sh,elf_file_ptr);
+        uint32_t strtab_index = get_string_table_index_for_symbol_sh(symtab_section_header);
+        Elf64_Shdr* strtab_sh = get_section_header_from_offset(section_headers,strtab_index);
+        symtab_symbols = get_symbols_from_section_header_symbol(symtab_section_header,strtab_sh,elf_file_ptr);
     }
     else
     {
         symtab_symbols = NULL;
     }
-    uint16_t number_of_symbols = get_number_of_symbols_from_symbol_sh(symtab_section_header);
-    for(int i=0;i<number_of_symbols;i++){
+    uint16_t number_of_symbols_symtab = get_number_of_symbols_from_symbol_sh(symtab_section_header);
+    for(int i=0;i<number_of_symbols_symtab;i++){
         printf("%s\n",symtab_symbols[i].name);
     }
     //get dynsym symbols
+    symbol* dynsym_symbols;
+    if(dynsym_section_header != NULL){
+        uint32_t dynstr_index = get_string_table_index_for_symbol_sh(dynsym_section_header);
+        Elf64_Shdr* dynstr_sh = get_section_header_from_offset(section_headers,dynstr_index);
+        dynsym_symbols = get_symbols_from_section_header_symbol(dynsym_section_header,dynstr_sh,elf_file_ptr);
+    }
+    else
+    {
+        dynsym_symbols = NULL;
+    }
+    uint16_t number_of_symbols_dynsym = get_number_of_symbols_from_symbol_sh(dynsym_section_header);
+    for(int i=0;i<number_of_symbols_dynsym;i++){
+        printf("%s\n",dynsym_symbols[i].name);
+    }
+
+    symbols_to_return = malloc(sizeof(symbol)*(number_of_symbols_symtab + number_of_symbols_dynsym));
+    if(symtab_symbols != NULL){
+        memcpy(symbols_to_return,symtab_symbols,number_of_symbols_symtab * sizeof(symbol));
+    }
+    if(dynsym_symbols != NULL){
+        memcpy(symbols_to_return+number_of_symbols_symtab, dynsym_symbols, number_of_symbols_dynsym * sizeof(symbol));
+    }
 
 
-
-    return NULL;
+    return symbols_to_return;
 }
+
 
 
 
