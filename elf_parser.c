@@ -112,7 +112,7 @@ symbol* get_symbols_from_section_header_symbol(Elf64_Shdr* symbol_section_header
     }
     symbol* symbols_to_return = malloc(sizeof(symbol) * number_of_symbols);
     for(int i = 0; i < number_of_symbols;i++){
-        if(symbols[i].st_info == STT_FUNC){
+        if (ELF64_ST_TYPE(symbols[i].st_info) == STT_FUNC) {
             symbols_to_return[i].type = FUNC;
         }
         char* symbol_name = strtab_values + symbols[i].st_name;
@@ -125,13 +125,14 @@ symbol* get_symbols_from_section_header_symbol(Elf64_Shdr* symbol_section_header
     return symbols_to_return;
 }
 
-symbol* get_symbols_from_file(FILE* elf_file_ptr){
+symbols_array* get_symbols_from_file(FILE* elf_file_ptr){
     Elf64_Ehdr* elf_header = get_elf_header(elf_file_ptr);
     Elf64_Shdr* section_headers = get_section_headers(elf_header,elf_file_ptr);
     uint16_t number_of_section_headers = get_number_of_section_headers(elf_header);
     Elf64_Shdr* symtab_section_header = get_section_header_by_type(section_headers,SHT_SYMTAB,number_of_section_headers);
     Elf64_Shdr* dynsym_section_header = get_section_header_by_type(section_headers,SHT_DYNSYM,number_of_section_headers);
     symbol* symbols_to_return;
+    symbols_array* array_of_symbols = malloc(sizeof(symbols_array));
     //get symtab symbols
     symbol* symtab_symbols;
     if(symtab_section_header != NULL){
@@ -144,9 +145,7 @@ symbol* get_symbols_from_file(FILE* elf_file_ptr){
         symtab_symbols = NULL;
     }
     uint16_t number_of_symbols_symtab = get_number_of_symbols_from_symbol_sh(symtab_section_header);
-    for(int i=0;i<number_of_symbols_symtab;i++){
-        printf("%s\n",symtab_symbols[i].name);
-    }
+
     //get dynsym symbols
     symbol* dynsym_symbols;
     if(dynsym_section_header != NULL){
@@ -159,9 +158,6 @@ symbol* get_symbols_from_file(FILE* elf_file_ptr){
         dynsym_symbols = NULL;
     }
     uint16_t number_of_symbols_dynsym = get_number_of_symbols_from_symbol_sh(dynsym_section_header);
-    for(int i=0;i<number_of_symbols_dynsym;i++){
-        printf("%s\n",dynsym_symbols[i].name);
-    }
 
     symbols_to_return = malloc(sizeof(symbol)*(number_of_symbols_symtab + number_of_symbols_dynsym));
     if(symtab_symbols != NULL){
@@ -170,12 +166,13 @@ symbol* get_symbols_from_file(FILE* elf_file_ptr){
     if(dynsym_symbols != NULL){
         memcpy(symbols_to_return+number_of_symbols_symtab, dynsym_symbols, number_of_symbols_dynsym * sizeof(symbol));
     }
+    free(symtab_symbols);
+    free(dynsym_symbols);
 
-
-    return symbols_to_return;
+    array_of_symbols->symbols = symbols_to_return;
+    array_of_symbols->number_of_symbols = number_of_symbols_dynsym + number_of_symbols_symtab;
+    return array_of_symbols;
 }
-
-
 
 
 

@@ -25,8 +25,6 @@ int main(int argc,char* argv[],char* envp[]){
 
         if(child_pid ==0){
             //child code 
-            char executble_path[50];
-            strncpy(executble_path,argv[2],sizeof(executble_path));
 
             ptrace(PTRACE_TRACEME,child_pid,NULL,NULL);
          

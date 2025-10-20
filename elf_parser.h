@@ -6,8 +6,8 @@ typedef enum{
 }symbol_table_type;
 
 typedef enum{
-    FUNC,
-    GLOBAL_VAR
+    GLOBAL_VAR,
+    FUNC
 }symbol_type;
 
 typedef struct{
@@ -17,6 +17,11 @@ typedef struct{
     symbol_type type;
     symbol_table_type table_type;
 }symbol;
+
+typedef struct{
+    symbol* symbols;
+    uint16_t number_of_symbols;
+}symbols_array;
 
 Elf64_Ehdr* get_elf_header(FILE* elf_file_ptr);
 Elf64_Addr get_entry_point(Elf64_Ehdr* elf_header);
@@ -32,4 +37,4 @@ uint32_t get_string_table_index_for_symbol_sh(Elf64_Shdr* symbol_section_header)
 Elf64_Shdr* get_section_header_from_offset(Elf64_Shdr* first_section_header,uint32_t index_number);
 char* get_string_table_values_from_string_table_sh(Elf64_Shdr* strtab_sh,FILE* elf_file_ptr);
 symbol* get_symbols_from_section_header_symbol(Elf64_Shdr* symbol_section_header,Elf64_Shdr* string_table_sh, FILE* elf_file_ptr);
-symbol* get_symbols_from_file(FILE* elf_file_ptr);
+symbols_array* get_symbols_from_file(FILE* elf_file_ptr);
