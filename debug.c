@@ -5,9 +5,19 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include "debug.h"
+#include "parser.h"
+
+
+int handle_command(char* command){
+    char** commands = parse_command(command);
+
+}
+
+
+
 
 int debug_process(pid_t pid){
-    char buf[40];
+    char input_command[40];
     int pid_status;
     int res = waitpid(pid,&pid_status,0);
     printf("result : %d\n",res);
@@ -15,6 +25,7 @@ int debug_process(pid_t pid){
             printf("Child stopped by signal %d\n", WSTOPSIG(pid_status));
             printf("ready to debug!\n");
             printf(">");
-            scanf("%s",buf);
+            scanf("%s",input_command);
+            handle_command(input_command);
     } 
 }
