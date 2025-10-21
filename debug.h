@@ -2,7 +2,7 @@
 #define INPUT_SIZE 50
 typedef struct{
     char* command;
-    int(*func_handler)(int argc, char** argv);
+    int(*func_handler)(int argc, char** argv,pid_t pid);
     char* help;
 }command_table;
 
@@ -11,6 +11,6 @@ typedef struct{
 extern const command_table table_commands[];
 
 int debug_process(pid_t pid);
-int info(int argc,char** argv);
-int breakpoint(int argc,char** argv);
-int exit_debugger(int argc,char** argv);
+
+int breakpoint(int argc,char** argv,pid_t pid);
+int exit_debugger(int argc,char** argv, pid_t pid);
