@@ -176,15 +176,3 @@ symbols_array* get_symbols_from_file(FILE* elf_file_ptr){
 
 
 
-int main(){
-    char* elf_path = "/home/erez123/DEBUGGER_PRJ/main";
-    FILE* elf_file_ptr = fopen(elf_path,"rb");
-    symbols_array* symbols_arr = get_symbols_from_file(elf_file_ptr);
-    for(int i =0; i < symbols_arr->number_of_symbols;i++){
-        if(symbols_arr->symbols[i].type == FUNC){
-            printf("%s\n",symbols_arr->symbols[i].name);
-        }
-    }
-    fclose(elf_file_ptr);
-
-}
