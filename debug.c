@@ -10,12 +10,14 @@
 #include "debug.h"
 #include "parser.h"
 #include "info_commands.h"
+#include "commands.h"
 
 
 const command_table table_commands[] = {
     {"info",info,"help displaying data like functions/registers and more..."},
     {"break",breakpoint,"set breakpoint in adress you choose"},
     {"exit",exit_debugger,"exit from debugger"},
+    {"c",continue_proc,"continue the execution of the process"},
     {NULL,NULL,NULL}
 };
 
@@ -28,22 +30,12 @@ int handle_command(char* command,pid_t pid){
     }
     for(int i =0; table_commands[i].command!= NULL;i++){
         if(strcmp(commands[0],table_commands[i].command) == 0){
-            printf("command : %s\n",table_commands[i].command);
             table_commands[i].func_handler(*argc,commands,pid);
             return 1;
         }
     }
     return 0;
 }
-
-
-int breakpoint(int argc,char** argv,pid_t pid){
-    printf("%s",argv[1]);
-}
-int exit_debugger(int argc,char** argv, pid_t pid){
-    exit(0);
-}
-
 
 
 int debug_process(pid_t pid){

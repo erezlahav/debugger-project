@@ -17,7 +17,6 @@ int info(int argc,char** argv,pid_t pid){
     }
     for(int i = 0; functions_info[i].command != NULL;i++){
         if(strcmp(argv[1],functions_info[i].command) == 0){
-            printf("found!\n");
             functions_info[i].info_func_handler(argc,argv,pid);
             return 1;
         }
