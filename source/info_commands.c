@@ -11,13 +11,13 @@ info_commands functions_info[] = {
     {NULL,NULL,NULL}
 };
 
-int info(int argc,char** argv,pid_t pid){
+int info(int argc,char** argv){
     if(argc != 2){
         return 0;
     }
     for(int i = 0; functions_info[i].command != NULL;i++){
         if(strcmp(argv[1],functions_info[i].command) == 0){
-            functions_info[i].info_func_handler(argc,argv,pid);
+            functions_info[i].info_func_handler(argc,argv);
             return 1;
         }
     }
@@ -27,17 +27,17 @@ int info(int argc,char** argv,pid_t pid){
 
 
 
-int info_registers(int argc, char** argv,pid_t pid){
+int info_registers(int argc, char** argv){
     printf("in info registers\n");
 }
 
 
 
-int info_functions(int argc, char** argv,pid_t pid){
+int info_functions(int argc, char** argv){
     printf("in info functions\n");
 }
 
 
-int info_breakpoints(int argc, char** argv,pid_t pid){
+int info_breakpoints(int argc, char** argv){
     printf("in info breakpoints\n");
 }

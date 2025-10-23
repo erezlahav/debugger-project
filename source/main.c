@@ -8,8 +8,11 @@
 #include <signal.h>
 
 #include "debug.h"
-
+RUNNING_STATE proc_state = NOT_LOADED;
+pid_t debugee_pid = -1;
 int main(int argc,char* argv[],char* envp[]){
+    
+
     if(argc != 3){
         printf("Usage: %s -mode <pid>/<path>\n",argv[0]);
         exit(0);
@@ -20,30 +23,18 @@ int main(int argc,char* argv[],char* envp[]){
         char executble_path[50];
         strncpy(executble_path,argv[2],sizeof(executble_path));
 
-        pid_t child_pid = fork();
-        
 
-        if(child_pid ==0){
-            //child code 
-
-            ptrace(PTRACE_TRACEME,child_pid,NULL,NULL);
-         
-            int exceve_res = execlp(executble_path,executble_path,NULL);
-            if(exceve_res == -1){
-                printf("failed execlp : %s\n",strerror(errno));
-                exit(0);
-            }
-            
+        debug_process(executble_path);
+        /*
+        int status;
+        waitpid(child_pid, &status, 0);
+        if (WIFSTOPPED(status)) {
+            printf("The program is stopped, signal: %d\n", WSTOPSIG(status));
         }
-
-        else{
-            //parent(current process) code 
-            debug_process(child_pid);
-            
-
+        if (WIFEXITED(status)) {
+            printf("The program exited with %d\n", WEXITSTATUS(status));
         }
-
-
+        */
     }
 
 

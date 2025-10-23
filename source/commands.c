@@ -6,14 +6,19 @@
 
 
 
-int continue_proc(int argc,char** argv,pid_t pid){
-    ptrace(PTRACE_CONT,pid,NULL,NULL);
-    printf("process continue\n");
+int run_process(int argc,char** argv){
+    printf("in run process\n");
 }
 
-int breakpoint(int argc,char** argv,pid_t pid){
-    printf("%s",argv[1]);
+int continue_proc(int argc,char** argv){
+    printf("in continue process\n");
+    //ptrace(PTRACE_CONT,pid,NULL,NULL);
 }
-int exit_debugger(int argc,char** argv, pid_t pid){
+
+int breakpoint(int argc,char** argv){
+    printf("in breakpoint\n");
+}
+int exit_debugger(int argc,char** argv){
+    printf("in exit\n");
     exit(0);
 }

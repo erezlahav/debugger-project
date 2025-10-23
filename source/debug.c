@@ -12,17 +12,19 @@
 #include "info_commands.h"
 #include "commands.h"
 
+extern RUNNING_STATE proc_state;
 
 const command_table table_commands[] = {
     {"info",info,"help displaying data like functions/registers and more..."},
     {"break",breakpoint,"set breakpoint in adress you choose"},
     {"exit",exit_debugger,"exit from debugger"},
     {"c",continue_proc,"continue the execution of the process"},
+    {"r",run_process,"run the current process after breaking on stop signal before main"},
     {NULL,NULL,NULL}
 };
 
 
-int handle_command(char* command,pid_t pid){
+int handle_command(char* command){
     int* argc = malloc(sizeof(int));
     char** commands = parse_command(command,argc);
     if(commands == NULL){
@@ -30,7 +32,7 @@ int handle_command(char* command,pid_t pid){
     }
     for(int i =0; table_commands[i].command!= NULL;i++){
         if(strcmp(commands[0],table_commands[i].command) == 0){
-            table_commands[i].func_handler(*argc,commands,pid);
+            table_commands[i].func_handler(*argc,commands);
             return 1;
         }
     }
@@ -38,21 +40,14 @@ int handle_command(char* command,pid_t pid){
 }
 
 
-int debug_process(pid_t pid){
+int debug_process(char* elf_path){
     char* input_command = malloc(sizeof(char)*INPUT_SIZE);
-    int pid_status;
     int exit = 0;
-    int res = waitpid(pid,&pid_status,0); //waits for the process to stop due to signal or killed 
-    printf("result : %d\n",res);
-    if(WIFSTOPPED(pid_status)) { //checks if child stopped due to signal(SIGSTOP/SIGTRAP ), it will most likely wait for SIGTRAP in child
-            printf("Child stopped by signal %d\n", WSTOPSIG(pid_status));
-            printf("ready to debug!\n");
-    } 
 
     while(!exit){
         printf(">");
         fgets(input_command,INPUT_SIZE,stdin);
-        handle_command(input_command,pid);
+        handle_command(input_command);
     }
 }
 
