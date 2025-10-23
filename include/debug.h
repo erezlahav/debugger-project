@@ -16,4 +16,10 @@ typedef enum{
     NOT_LOADED
 }RUNNING_STATE;
 
+typedef struct{
+    char* elf_path;
+    RUNNING_STATE proc_state;
+    pid_t pid;
+}debugee_process;
+
 extern const command_table table_commands[];

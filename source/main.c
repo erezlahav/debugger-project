@@ -8,8 +8,9 @@
 #include <signal.h>
 
 #include "debug.h"
-RUNNING_STATE proc_state = NOT_LOADED;
-pid_t debugee_pid = -1;
+
+#define SIZE_OF_PATH 50
+debugee_process process_to_debug;
 int main(int argc,char* argv[],char* envp[]){
     
 
@@ -20,11 +21,14 @@ int main(int argc,char* argv[],char* envp[]){
 
     if(strcmp(argv[1],"-run") == 0){
         printf("executing -run to process\n");
-        char executble_path[50];
-        strncpy(executble_path,argv[2],sizeof(executble_path));
+        process_to_debug.proc_state = NOT_LOADED;
+        process_to_debug.elf_path = malloc(SIZE_OF_PATH);
+        process_to_debug.pid = -1;
+        strncpy(process_to_debug.elf_path,argv[2],SIZE_OF_PATH);
 
 
-        debug_process(executble_path);
+
+        debug_process(process_to_debug.elf_path);
         /*
         int status;
         waitpid(child_pid, &status, 0);
