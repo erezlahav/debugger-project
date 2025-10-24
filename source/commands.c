@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "commands.h"
 #include "debug.h"
+#include "breakpoint.h"
+
 
 extern debugee_process process_to_debug;
 
@@ -35,19 +37,12 @@ int continue_proc(int argc,char** argv){
         printf("process is not running yet\n");
         return 0;
     }
-
-
     if(process_to_debug.pid != -1){
         ptrace(PTRACE_CONT,process_to_debug.pid,NULL,NULL);
+        process_to_debug.proc_state = RUNNING;
         return 1;
     }
-
-
     return 0;
-}
-
-int breakpoint(int argc,char** argv){
-    printf("in breakpoint\n");
 }
 int exit_debugger(int argc,char** argv){
     printf("in exit\n");

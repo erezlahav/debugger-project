@@ -12,11 +12,11 @@
 #include "info_commands.h"
 #include "commands.h"
 
-extern RUNNING_STATE proc_state;
+
 
 const command_table table_commands[] = {
     {"info",info,"help displaying data like functions/registers and more..."},
-    {"break",breakpoint,"set breakpoint in adress you choose"},
+    {"break",set_breakpoint,"set breakpoint in adress you choose"},
     {"exit",exit_debugger,"exit from debugger"},
     {"c",continue_proc,"continue the execution of the process"},
     {"r",run_process,"run the current process after breaking on stop signal before main"},
