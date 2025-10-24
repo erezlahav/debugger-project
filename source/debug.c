@@ -11,6 +11,7 @@
 #include "parser.h"
 #include "info_commands.h"
 #include "commands.h"
+#include "breakpoint.h"
 
 
 

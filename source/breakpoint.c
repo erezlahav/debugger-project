@@ -3,10 +3,12 @@
 #include <string.h>
 
 
-#include "../include/breakpoint.h"
+#include "breakpoint.h"
 
 
+int ptrace_breakpoint(long adress){
 
+}
 
 
 int set_breakpoint(int argc,char** argv){
@@ -20,7 +22,7 @@ int set_breakpoint(int argc,char** argv){
         break_symbol(argv[1]);
     }
     else{ //* in argv, means its raw adrress or relitive symbol
-        handle_break_adress(argv);
+        handle_star_breakpoint(argv);
     }
     
 }
@@ -33,7 +35,7 @@ int break_symbol(char* symbol){
 
 
 
-int handle_break_adress(char** argv){
+int handle_star_breakpoint(char** argv){
     char* break_arg = argv[1];
     if(break_arg[0] != '*'){return 0;};
 
@@ -55,12 +57,22 @@ int set_break_raw_adress(char* addr_to_break){
 int set_break_relitive_symbol(char* break_argument){
     printf("in set_break_relitive_symbol\n");
     int* plus_index = malloc(sizeof(int));
-    char* symbol_name = get_relitive_symbol_name(break_argument,plus_index);
-    printf("symbol name : %s\n",symbol_name);
-
+    char* symbol_name = get_relitive_symbol_name_and_plus_index(break_argument,plus_index);
+    long relitive_symbol_offset = 0;
+    char* chars_after_plus;
+    if(*plus_index != -1){
+        chars_after_plus = break_argument + *plus_index + 1;
+        if(strncmp(chars_after_plus,"0x",2) == 0 || strncmp(chars_after_plus,"0X",2) == 0){
+            relitive_symbol_offset = string_addr_to_long(chars_after_plus);
+        }
+        else{
+            relitive_symbol_offset = atoi(chars_after_plus);
+        }
+    }
+    
 }
 
-char* get_relitive_symbol_name(char* break_argument,int* plus_index){
+char* get_relitive_symbol_name_and_plus_index(char* break_argument,int* plus_index){
     int length = strlen(break_argument);
     char* symbol_name = malloc(length);
     *plus_index = -1;
