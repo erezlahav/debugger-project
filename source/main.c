@@ -8,9 +8,11 @@
 #include <signal.h>
 
 #include "debug.h"
-
+#include "elf_parser.h"
 #define SIZE_OF_PATH 50
+
 debugee_process process_to_debug;
+symbols_array* array_of_symbols;
 int main(int argc,char* argv[],char* envp[]){
     
 
@@ -18,6 +20,7 @@ int main(int argc,char* argv[],char* envp[]){
         printf("Usage: %s -mode <pid>/<path>\n",argv[0]);
         exit(0);
     }
+    
 
     if(strcmp(argv[1],"-run") == 0){
         printf("executing -run to process\n");
@@ -26,7 +29,14 @@ int main(int argc,char* argv[],char* envp[]){
         process_to_debug.pid = -1;
         strncpy(process_to_debug.elf_path,argv[2],SIZE_OF_PATH);
 
+        FILE* elf_target_ptr = fopen(process_to_debug.elf_path,"rb");
+        if(elf_target_ptr == NULL){
+            printf("fopen failed!\n");
+            exit(0);
+        }
+        array_of_symbols = get_symbols_from_file(elf_target_ptr);
 
+        fclose(elf_target_ptr);
 
         debug_process(process_to_debug.elf_path);
         /*

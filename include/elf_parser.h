@@ -1,5 +1,10 @@
 #pragma once
-
+#include <elf.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <string.h>
 typedef enum{
     symtab,
     dynsym
@@ -38,3 +43,4 @@ Elf64_Shdr* get_section_header_from_offset(Elf64_Shdr* first_section_header,uint
 char* get_string_table_values_from_string_table_sh(Elf64_Shdr* strtab_sh,FILE* elf_file_ptr);
 symbol* get_symbols_from_section_header_symbol(Elf64_Shdr* symbol_section_header,Elf64_Shdr* string_table_sh, FILE* elf_file_ptr);
 symbols_array* get_symbols_from_file(FILE* elf_file_ptr);
+symbol* find_symbol_by_name(symbols_array* array_of_symbols,char* name);

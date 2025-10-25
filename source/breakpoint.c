@@ -4,7 +4,8 @@
 
 
 #include "breakpoint.h"
-
+#include "elf_parser.h"
+extern symbols_array* array_of_symbols;
 
 int ptrace_breakpoint(long adress){
 
@@ -28,8 +29,17 @@ int set_breakpoint(int argc,char** argv){
 }
 
 
-int break_symbol(char* symbol){
+int break_symbol(char* symbol_name){
+    
     printf("in break symbol\n");
+    symbol* target_symbol;
+    target_symbol = find_symbol_by_name(array_of_symbols,symbol_name);
+    if(target_symbol != NULL){
+        printf("symbol %s found!!\n",symbol_name);
+    }
+    else{
+        printf("symbol %s no found\n",symbol_name);
+    }
 }
 
 

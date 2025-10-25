@@ -1,9 +1,3 @@
-#include <elf.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <string.h>
 #include "elf_parser.h"
 
 
@@ -174,5 +168,14 @@ symbols_array* get_symbols_from_file(FILE* elf_file_ptr){
     return array_of_symbols;
 }
 
+
+symbol* find_symbol_by_name(symbols_array* array_of_symbols,char* name){
+    for(int i =0; i < array_of_symbols->number_of_symbols;i++){
+        if(strcmp(array_of_symbols->symbols[i].name,name) == 0){
+            return &array_of_symbols->symbols[i];
+        }
+    }
+    return NULL;
+}
 
 
