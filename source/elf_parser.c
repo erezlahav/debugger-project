@@ -4,7 +4,7 @@
 
 Elf64_Ehdr* get_elf_header(FILE* elf_file_ptr){
     Elf64_Ehdr* elf_header = malloc(sizeof(Elf64_Ehdr));
-    size_t bytes_read = fread(elf_header, 1 , sizeof(Elf64_Ehdr), elf_file_ptr);
+    size_t bytes_read = fread(elf_header,sizeof(Elf64_Ehdr), 1, elf_file_ptr);
     return elf_header;
 }
 
@@ -129,30 +129,33 @@ symbols_array* get_symbols_from_file(FILE* elf_file_ptr){
     symbols_array* array_of_symbols = malloc(sizeof(symbols_array));
     //get symtab symbols
     symbol* symtab_symbols;
+    uint16_t number_of_symbols_symtab;
     if(symtab_section_header != NULL){
         uint32_t strtab_index = get_string_table_index_for_symbol_sh(symtab_section_header);
         Elf64_Shdr* strtab_sh = get_section_header_from_offset(section_headers,strtab_index);
         symtab_symbols = get_symbols_from_section_header_symbol(symtab_section_header,strtab_sh,elf_file_ptr);
+        number_of_symbols_symtab = get_number_of_symbols_from_symbol_sh(symtab_section_header);
     }
     else
     {
         symtab_symbols = NULL;
+        number_of_symbols_symtab = 0;
     }
-    uint16_t number_of_symbols_symtab = get_number_of_symbols_from_symbol_sh(symtab_section_header);
 
     //get dynsym symbols
     symbol* dynsym_symbols;
+    uint16_t number_of_symbols_dynsym;
     if(dynsym_section_header != NULL){
         uint32_t dynstr_index = get_string_table_index_for_symbol_sh(dynsym_section_header);
         Elf64_Shdr* dynstr_sh = get_section_header_from_offset(section_headers,dynstr_index);
         dynsym_symbols = get_symbols_from_section_header_symbol(dynsym_section_header,dynstr_sh,elf_file_ptr);
+        number_of_symbols_dynsym = get_number_of_symbols_from_symbol_sh(dynsym_section_header);
     }
     else
     {
         dynsym_symbols = NULL;
+        number_of_symbols_dynsym = 0;
     }
-    uint16_t number_of_symbols_dynsym = get_number_of_symbols_from_symbol_sh(dynsym_section_header);
-
     symbols_to_return = malloc(sizeof(symbol)*(number_of_symbols_symtab + number_of_symbols_dynsym));
     if(symtab_symbols != NULL){
         memcpy(symbols_to_return,symtab_symbols,number_of_symbols_symtab * sizeof(symbol));

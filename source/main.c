@@ -9,6 +9,7 @@
 
 #include "debug.h"
 #include "elf_parser.h"
+#include "utils.h"
 #define SIZE_OF_PATH 50
 
 debugee_process process_to_debug;
@@ -29,7 +30,7 @@ int main(int argc,char* argv[],char* envp[]){
         process_to_debug.pid = -1;
         strncpy(process_to_debug.elf_path,argv[2],SIZE_OF_PATH);
 
-        FILE* elf_target_ptr = fopen(process_to_debug.elf_path,"rb");
+        FILE* elf_target_ptr = get_file_pointer_by_path(process_to_debug.elf_path);
         if(elf_target_ptr == NULL){
             printf("fopen failed!\n");
             exit(0);
