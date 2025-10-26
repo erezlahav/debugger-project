@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../include/utils.h"
+#include "utils.h"
 
 #define AMOUNT_OF_PATHS 100
 #define MAX_PATH_SIZE 70
@@ -15,13 +15,29 @@ FILE* get_file_pointer_by_path(char* path){
     }
     char* path_env;
     path_env = getenv("PATH");
-    printf("%s\n\n",path_env);
     char** env_paths = get_env_paths(path_env);
-    for(int i =0;env_paths[i] != NULL;i++){
-        printf("%s\n",env_paths[i]);
-    }
-
+    file_ptr = get_file_ptr_by_name_from_env(env_paths,path);
+    free_env_paths(env_paths);
+    return file_ptr;
 }
+
+FILE* get_file_ptr_by_name_from_env(char** nullble_env_paths,char* target_file){
+    char slash[100];
+    strcpy(slash,"/");
+    char* file_name = strcat(slash,target_file);
+    char* full_path;
+    FILE* ptr_to_file;
+    for(int i = 0; nullble_env_paths[i] != NULL;i++){
+        full_path = strcat(nullble_env_paths[i],file_name);
+        ptr_to_file = fopen(full_path,"rb");
+        if(ptr_to_file != NULL){
+            return ptr_to_file;
+        }
+    }
+    return NULL;
+}
+
+
 
 char** get_env_paths(char* path_env){
     char** env_paths = malloc(sizeof(char*) * AMOUNT_OF_PATHS);
