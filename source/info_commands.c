@@ -2,8 +2,11 @@
 #include <string.h>
 
 #include "info_commands.h"
+#include "elf_parser.h"
+#include "debug.h"
 
-
+extern symbols_array* array_of_symbols;
+extern debugee_process process_to_debug;
 info_commands functions_info[] = {
     {"registers",info_registers,"info all the current thread registers"},
     {"functions",info_functions,"info all functions"},
@@ -29,12 +32,20 @@ int info(int argc,char** argv){
 
 int info_registers(int argc, char** argv){
     printf("in info registers\n");
+    if(process_to_debug.proc_state != STOPPED || process_to_debug.proc_state != RUNNING){
+        printf("no registers avalible\n");
+    }
 }
 
 
 
 int info_functions(int argc, char** argv){
-    printf("in info functions\n");
+    printf("in info functions!\n");
+    for(int i = 0; i < array_of_symbols->number_of_symbols;i++){
+        if(array_of_symbols->symbols[i].type == FUNC){
+            printf("0x%08lx     %s\n",array_of_symbols->symbols[i].adress,array_of_symbols->symbols[i].name);
+        }
+    }
 }
 
 
