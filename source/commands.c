@@ -13,6 +13,7 @@ int run_process(int argc,char** argv){
     process_to_debug.pid = fork();
     if(process_to_debug.pid == 0){
         ptrace(PTRACE_TRACEME,process_to_debug.pid,NULL,NULL);
+        printf("%s\n",process_to_debug.elf_path);
         int res = execlp(process_to_debug.elf_path,process_to_debug.elf_path,NULL);
         if(res == -1){
             printf("execlp failed\n");

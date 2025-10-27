@@ -36,7 +36,6 @@ int main(int argc,char* argv[],char* envp[]){
             exit(0);
         }
         array_of_symbols = get_symbols_from_file(elf_target_ptr);
-
         fclose(elf_target_ptr);
 
         debug_process(process_to_debug.elf_path);
