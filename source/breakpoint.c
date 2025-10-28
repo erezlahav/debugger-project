@@ -55,7 +55,7 @@ int handle_star_breakpoint(char** argv){
     }
 
     else{
-        set_break_relitive_symbol(break_arg);
+        set_break_in_star_symbol(break_arg);
     }
 }
 
@@ -64,20 +64,34 @@ int set_break_raw_adress(char* addr_to_break){
 }
 
 
-int set_break_relitive_symbol(char* break_argument){
-    printf("in set_break_relitive_symbol\n");
+int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol){
+    printf("in break relitive symbol\n");
+    printf("symbol name : %s\noffset from symbol : %ld\n",symbol_name,offset_from_symbol);
+
+}
+
+
+int set_break_in_star_symbol(char* break_argument){
+    printf("in set_break_in_star_symbol\n");
     int* plus_index = malloc(sizeof(int));
     char* symbol_name = get_relitive_symbol_name_and_plus_index(break_argument,plus_index);
     long relitive_symbol_offset = 0;
     char* chars_after_plus;
-    if(*plus_index != -1){
+    if(*plus_index != -1){ //have offset after symbol
         chars_after_plus = break_argument + *plus_index + 1;
-        if(strncmp(chars_after_plus,"0x",2) == 0 || strncmp(chars_after_plus,"0X",2) == 0){
+        if(strncmp(chars_after_plus,"0x",2) == 0 || strncmp(chars_after_plus,"0X",2) == 0){ //offset in hexadecimal
             relitive_symbol_offset = string_addr_to_long(chars_after_plus);
         }
         else{
-            relitive_symbol_offset = atoi(chars_after_plus);
+            relitive_symbol_offset = atoi(chars_after_plus); //offset in decimal
         }
+
+
+        break_in_relitive_symbol(symbol_name,relitive_symbol_offset);
+
+    }
+    else{
+        break_symbol(symbol_name); //only symbol
     }
     
 }
