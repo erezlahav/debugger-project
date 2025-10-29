@@ -20,6 +20,8 @@ typedef struct{
     char* elf_path;
     RUNNING_STATE proc_state;
     pid_t pid;
+    long binary_base;
+    
 }debugee_process;
 
 extern const command_table table_commands[];
