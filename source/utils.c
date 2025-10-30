@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "utils.h"
+#include "../include/utils.h"
 
 #define AMOUNT_OF_PATHS 100
-#define MAX_PATH_SIZE 70
+#define MAX_PATH_SIZE 150
 
 FILE* get_file_pointer_by_path(char* path){
     FILE* file_ptr;
@@ -15,9 +15,9 @@ FILE* get_file_pointer_by_path(char* path){
     }
     char* path_env;
     path_env = getenv("PATH");
-    char** env_paths = get_env_paths(path_env);
+    char** env_paths = parser(path_env,":");
     file_ptr = get_file_ptr_by_name_from_env(env_paths,path);
-    free_env_paths(env_paths);
+    free_double_str_ptr(env_paths);
     return file_ptr;
 }
 
@@ -38,7 +38,7 @@ FILE* get_file_ptr_by_name_from_env(char** nullble_env_paths,char* target_file){
 }
 
 
-
+/*
 char** get_env_paths(char* path_env){
     int path_env_size = AMOUNT_OF_PATHS * MAX_PATH_SIZE;
     char* copy_path_env = malloc(path_env_size);
@@ -56,10 +56,26 @@ char** get_env_paths(char* path_env){
     env_paths[current_index] = NULL;
     return env_paths;
 }
+*/
+char** parser(char* str,char* delim){
+    int size = AMOUNT_OF_PATHS * MAX_PATH_SIZE;
+    char* copy_str = malloc(size);
+    strncpy(copy_str,str,size);
+    char** strings_arr = malloc(sizeof(char*) * AMOUNT_OF_PATHS);
+    int current_index = 0;
+    char* current_str = strtok(copy_str,delim);
+    while(current_str != NULL){
+        strings_arr[current_index] = malloc(MAX_PATH_SIZE);
+        strncpy(strings_arr[current_index],current_str,MAX_PATH_SIZE);
+        current_str = strtok(NULL,delim);
+        current_index++;
+    }
+    free(copy_str);
+    strings_arr[current_index] = NULL;
+    return strings_arr;
+}
 
-
-
-int free_env_paths(char** env_paths){
+int free_double_str_ptr(char** env_paths){
     for(int i = 0;env_paths[i] != NULL;i++){
         free(env_paths[i]);
     }
