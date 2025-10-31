@@ -5,7 +5,7 @@
 #include "commands.h"
 #include "debug.h"
 #include "breakpoint.h"
-
+#include "parse_maps.h"
 
 extern debugee_process process_to_debug;
 
@@ -29,6 +29,9 @@ int run_process(int argc,char** argv){
             printf("process stopped!\n");
             process_to_debug.proc_state = STOPPED;
         }
+        long base = get_base_adress(process_to_debug.pid);
+        printf("%ld\n",base);
+        ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
     }
     
 }
