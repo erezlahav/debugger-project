@@ -51,25 +51,6 @@ FILE* get_file_ptr_by_name_from_env(char** nullble_env_paths,char* target_file){
 }
 
 
-/*
-char** get_env_paths(char* path_env){
-    int path_env_size = AMOUNT_OF_PATHS * MAX_PATH_SIZE;
-    char* copy_path_env = malloc(path_env_size);
-    strncpy(copy_path_env,path_env,path_env_size);
-    char** env_paths = malloc(sizeof(char*) * AMOUNT_OF_PATHS);
-    int current_index = 0;
-    char* current_path = strtok(copy_path_env,":");
-    while(current_path != NULL){
-        env_paths[current_index] = malloc(MAX_PATH_SIZE);
-        strncpy(env_paths[current_index],current_path,MAX_PATH_SIZE);
-        current_path = strtok(NULL,":");
-        current_index++;
-    }
-    free(copy_path_env);
-    env_paths[current_index] = NULL;
-    return env_paths;
-}
-*/
 char** parser(char* str,char* delim){
     int size = AMOUNT_OF_PATHS * MAX_PATH_SIZE;
     char* copy_str = malloc(size);

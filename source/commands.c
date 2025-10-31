@@ -32,7 +32,7 @@ int run_process(int argc,char** argv){
         }
         process_to_debug.binary_base = get_base_adress_in_maps(process_to_debug.pid);
         update_adressing_of_symtab_symbols(array_of_symbols,process_to_debug.binary_base);
-        //ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
+        ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
     }
     
 }
