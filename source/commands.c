@@ -6,9 +6,10 @@
 #include "debug.h"
 #include "breakpoint.h"
 #include "parse_maps.h"
+#include "elf_parser.h"
 
 extern debugee_process process_to_debug;
-
+extern symbols_array* array_of_symbols;
 int run_process(int argc,char** argv){
     process_to_debug.pid = fork();
     if(process_to_debug.pid == 0){
@@ -29,9 +30,9 @@ int run_process(int argc,char** argv){
             printf("process stopped!\n");
             process_to_debug.proc_state = STOPPED;
         }
-        long base = get_base_adress(process_to_debug.pid);
-        printf("%ld\n",base);
-        ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
+        process_to_debug.binary_base = get_base_adress_in_maps(process_to_debug.pid);
+        update_adressing_of_symtab_symbols(array_of_symbols,process_to_debug.binary_base);
+        //ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
     }
     
 }

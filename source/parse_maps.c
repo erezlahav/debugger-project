@@ -58,8 +58,7 @@ char* read_maps(pid_t pid){
 }
 
 
-long get_base_adress(pid_t pid){
-
+long get_base_adress_in_maps(pid_t pid){
     char* content = read_maps(pid);
     get_base_adrr_from_maps_str(content);
 }

@@ -44,3 +44,4 @@ char* get_string_table_values_from_string_table_sh(Elf64_Shdr* strtab_sh,FILE* e
 symbol* get_symbols_from_section_header_symbol(Elf64_Shdr* symbol_section_header,Elf64_Shdr* string_table_sh, FILE* elf_file_ptr);
 symbols_array* get_symbols_from_file(FILE* elf_file_ptr);
 symbol* find_symbol_by_name(symbols_array* array_of_symbols,char* name);
+void update_adressing_of_symtab_symbols(symbols_array* array_of_symbols,long base_binary);

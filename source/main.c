@@ -10,7 +10,7 @@
 #include "debug.h"
 #include "elf_parser.h"
 #include "utils.h"
-#define SIZE_OF_PATH 50
+#define SIZE_OF_PATH 150
 
 debugee_process process_to_debug;
 symbols_array* array_of_symbols;
@@ -29,12 +29,12 @@ int main(int argc,char* argv[],char* envp[]){
         process_to_debug.elf_path = malloc(SIZE_OF_PATH);
         process_to_debug.pid = -1;
         strncpy(process_to_debug.elf_path,argv[2],SIZE_OF_PATH);
-
         FILE* elf_target_ptr = get_file_pointer_by_path(process_to_debug.elf_path);
         if(elf_target_ptr == NULL){
             printf("fopen failed!\n");
             exit(0);
         }
+        //printf("%s\n",process_to_debug.elf_path);
         array_of_symbols = get_symbols_from_file(elf_target_ptr);
         fclose(elf_target_ptr);
 

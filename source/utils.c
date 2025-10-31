@@ -1,16 +1,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
-#include "../include/utils.h"
+#include "utils.h"
+#include "debug.h"
 
 #define AMOUNT_OF_PATHS 100
 #define MAX_PATH_SIZE 150
+#define SIZE_OF_PATH 50
+extern debugee_process process_to_debug;
+
+
 
 FILE* get_file_pointer_by_path(char* path){
     FILE* file_ptr;
+    char copy_path[MAX_PATH_SIZE];
+    strncpy(copy_path,path,sizeof(copy_path));
     file_ptr = fopen(path,"rb");
     if(file_ptr != NULL){
+        if(path[0] == '.'){
+            getcwd(process_to_debug.elf_path,MAX_PATH_SIZE);
+            strcat(process_to_debug.elf_path,copy_path+1);
+        }
         return file_ptr;
     }
     char* path_env;
@@ -31,6 +43,7 @@ FILE* get_file_ptr_by_name_from_env(char** nullble_env_paths,char* target_file){
         full_path = strcat(nullble_env_paths[i],file_name);
         ptr_to_file = fopen(full_path,"rb");
         if(ptr_to_file != NULL){
+            strncpy(process_to_debug.elf_path,full_path,SIZE_OF_PATH);
             return ptr_to_file;
         }
     }
