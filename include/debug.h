@@ -1,5 +1,5 @@
 #pragma once
-#define INPUT_SIZE 50
+#define INPUT_SIZE 200
 
 
 typedef struct{

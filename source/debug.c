@@ -31,7 +31,9 @@ int handle_command(char* command){
     if(commands == NULL){
         return 0;
     }
+
     for(int i =0; table_commands[i].command!= NULL;i++){
+        if(commands[0] == NULL){break;}
         if(strcmp(commands[0],table_commands[i].command) == 0){
             table_commands[i].func_handler(*argc,commands);
             return 1;
