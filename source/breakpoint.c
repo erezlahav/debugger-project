@@ -5,10 +5,13 @@
 
 #include "breakpoint.h"
 #include "elf_parser.h"
+#include "debug.h"
 extern symbols_array* array_of_symbols;
+extern debugee_process process_to_debug;
+
 
 int ptrace_breakpoint(long adress){
-
+    printf("breaking at adress %ld\n",adress);
 }
 
 
@@ -30,15 +33,14 @@ int set_breakpoint(int argc,char** argv){
 
 
 int break_symbol(char* symbol_name){
-    
-    printf("in break symbol\n");
-    symbol* target_symbol;
-    target_symbol = find_symbol_by_name(array_of_symbols,symbol_name);
-    if(target_symbol != NULL){
-        printf("symbol %s found!!\n",symbol_name);
+    symbol* target_symbol = find_symbol_by_name(array_of_symbols,symbol_name);
+    if(target_symbol == NULL){
+        printf("symbol not found\n");
+        return 0;
     }
     else{
-        printf("symbol %s no found\n",symbol_name);
+        long adress_of_relitive_symbol = target_symbol->adress;
+        ptrace_breakpoint(adress_of_relitive_symbol);        
     }
 }
 
@@ -61,26 +63,26 @@ int handle_star_breakpoint(char** argv){
 }
 
 int set_break_raw_adress(char* addr_to_break){
-    printf("in break adress\n");
+    long break_adress = string_addr_to_long(addr_to_break);
+    ptrace_breakpoint(break_adress);
 }
 
 
 int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol){
-    printf("in break relitive symbol\n");
-    printf("symbol name : %s\noffset from symbol : %ld\n",symbol_name,offset_from_symbol);
     symbol* target_symbol = find_symbol_by_name(array_of_symbols,symbol_name);
     if(target_symbol == NULL){
-        printf("failed!\n");
+        printf("symbol not found!\n");
     }
     else{
-        printf("success!!\n");
+        long adress_of_relitive_symbol = target_symbol->adress;
+        adress_of_relitive_symbol += offset_from_symbol;
+        ptrace_breakpoint(adress_of_relitive_symbol);
     }
     return 0;
 }
 
 
 int set_break_in_star_symbol(char* break_argument){
-    printf("in set_break_in_star_symbol\n");
     int plus_index;
     char* symbol_name = get_relitive_symbol_name_and_plus_index(break_argument,&plus_index);
     long relitive_symbol_offset = 0;
@@ -98,14 +100,12 @@ int set_break_in_star_symbol(char* break_argument){
 
     }
     else{
-        printf("only symbol\n");
         break_symbol(symbol_name); //only symbol
     }
     
 }
 
 char* get_relitive_symbol_name_and_plus_index(char* break_argument,int* plus_index){
-    printf("in get_relitive_symbol_name_and_plus_index\n");
     int length = strlen(break_argument);
     char* symbol_name = malloc(length+1);
     *plus_index = -1;
