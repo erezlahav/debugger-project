@@ -10,10 +10,13 @@
 #include "debug.h"
 #include "elf_parser.h"
 #include "utils.h"
+#include "breakpoint.h"
 #define SIZE_OF_PATH 150
+#define MAX_AMOUNT_OF_BREAKPOINTS 100
 
 debugee_process process_to_debug;
 symbols_array* array_of_symbols;
+breakpoints_array array_of_breakpoints;
 int main(int argc,char* argv[],char* envp[]){
     
 
@@ -22,6 +25,8 @@ int main(int argc,char* argv[],char* envp[]){
         exit(0);
     }
     
+    array_of_breakpoints.number_of_breakpoints = 0;
+    array_of_breakpoints.arr_breakpoints = malloc(sizeof(breakpoint)* MAX_AMOUNT_OF_BREAKPOINTS);
 
     if(strcmp(argv[1],"-run") == 0){
         printf("executing -run to process\n");

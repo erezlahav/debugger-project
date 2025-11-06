@@ -8,10 +8,19 @@
 #include "debug.h"
 extern symbols_array* array_of_symbols;
 extern debugee_process process_to_debug;
+extern breakpoints_array array_of_breakpoints;
 
+int create_pending_breakpoint(long adress){
+    array_of_breakpoints.arr_breakpoints[array_of_breakpoints.number_of_breakpoints].adress = (void*)adress;
+    array_of_breakpoints.arr_breakpoints[array_of_breakpoints.number_of_breakpoints].state = PENDING;
+    array_of_breakpoints.number_of_breakpoints++;
+}
 
-int ptrace_breakpoint(long adress){
-    printf("breaking at adress %ld\n",adress);
+void print_breakpoints(){
+    for(int i = 0; i < array_of_breakpoints.number_of_breakpoints;i++){
+        breakpoint current_breakpoint = array_of_breakpoints.arr_breakpoints[i];
+        printf("breakpoint %d : adress : %ld, state : %d\n",i,current_breakpoint.adress,current_breakpoint.state);
+    }
 }
 
 
@@ -40,7 +49,7 @@ int break_symbol(char* symbol_name){
     }
     else{
         long adress_of_relitive_symbol = target_symbol->adress;
-        ptrace_breakpoint(adress_of_relitive_symbol);        
+        create_pending_breakpoint(adress_of_relitive_symbol);        
     }
 }
 
@@ -64,7 +73,7 @@ int handle_star_breakpoint(char** argv){
 
 int set_break_raw_adress(char* addr_to_break){
     long break_adress = string_addr_to_long(addr_to_break);
-    ptrace_breakpoint(break_adress);
+    create_pending_breakpoint(break_adress);
 }
 
 
@@ -76,7 +85,7 @@ int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol){
     else{
         long adress_of_relitive_symbol = target_symbol->adress;
         adress_of_relitive_symbol += offset_from_symbol;
-        ptrace_breakpoint(adress_of_relitive_symbol);
+        create_pending_breakpoint(adress_of_relitive_symbol);
     }
     return 0;
 }

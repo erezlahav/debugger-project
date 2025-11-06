@@ -2,15 +2,26 @@
 
 #include <stdint.h>
 
+typedef enum{
+    PENDING,
+    RESOLVED,
+    FAILED
+}bp_state;
 
 typedef struct{
     void* adress;
-    uint64_t orig_data; 
-    char* print_breakpoint;
+    uint64_t orig_data;
+    bp_state state;
 }breakpoint;
 
+typedef struct{
+    breakpoint* arr_breakpoints;
+    int number_of_breakpoints;
+}breakpoints_array;
 
-int ptrace_breakpoint(long adress);
+
+int create_pending_breakpoint(long adress);
+void print_breakpoints();
 int set_breakpoint(int argc,char** argv);
 int break_symbol(char* symbol);
 int handle_star_breakpoint(char** argv);
