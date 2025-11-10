@@ -8,12 +8,12 @@
 #define CHUNK_SIZE 4096
 
 extern debugee_process process_to_debug;
-memory_region mem_regions_array[MEMORY_MAPPINGS_SIZE];
+regions_array array_of_regions;
 
 void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and putting it in global array of mappings 
+    array_of_regions.regions_index = 0;
     char** parts_of_line;
     char** two_adresses;
-    int arr_index = 0;
     for(int i = 0;lines[i] != NULL;i++){
         long* str_start_addr = malloc(sizeof(long));
         long* str_end_addr = malloc(sizeof(long));
@@ -31,34 +31,31 @@ void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and put
         *str_start_addr = strtol(two_adresses[0],NULL,16);
         *str_end_addr = strtol(two_adresses[1],NULL,16);
         if(strstr(segment_name,process_to_debug.elf_path) != NULL && strstr(segment_permissions,"x") != NULL){
-            mem_regions_array[arr_index].type = BINARY;
-            mem_regions_array[arr_index].start = (void*)(str_start_addr);
-            mem_regions_array[arr_index].end = (void*)(str_end_addr);
-            arr_index++;
+           array_of_regions.arr[array_of_regions.regions_index].type = BINARY;
+            array_of_regions.arr[array_of_regions.regions_index].start = (void*)(str_start_addr);
+            array_of_regions.arr[array_of_regions.regions_index].end = (void*)(str_end_addr);
+            array_of_regions.regions_index++;
         }
         else if(strstr(segment_name,"[heap]") != NULL){
-            mem_regions_array[arr_index].type = HEAP;
-            mem_regions_array[arr_index].start = (void*)(str_start_addr);
-            mem_regions_array[arr_index].end = (void*)(str_end_addr);
-            arr_index++;
+            array_of_regions.arr[array_of_regions.regions_index].type = HEAP;
+            array_of_regions.arr[array_of_regions.regions_index].start = (void*)(str_start_addr);
+            array_of_regions.arr[array_of_regions.regions_index].end = (void*)(str_end_addr);
+            array_of_regions.regions_index++;
         }
         else if(strstr(segment_name,"[stack]") != NULL){
-            mem_regions_array[arr_index].type = STACK;
-            mem_regions_array[arr_index].start = (void*)(str_start_addr);
-            mem_regions_array[arr_index].end = (void*)(str_end_addr);
-            arr_index++;
+            array_of_regions.arr[array_of_regions.regions_index].type = STACK;
+            array_of_regions.arr[array_of_regions.regions_index].start = (void*)(str_start_addr);
+            array_of_regions.arr[array_of_regions.regions_index].end = (void*)(str_end_addr);
+            array_of_regions.regions_index++;
         }
         free_double_str_ptr(two_adresses);
         free_double_str_ptr(parts_of_line);
     }
-    mem_regions_array[arr_index].start = 0;
-    mem_regions_array[arr_index].end = 0;
-
 }
 
 void print_mem_regions(){
-    for(int i = 0; mem_regions_array[i].start != 0 && mem_regions_array[i].end != 0;i++){
-        printf("mem region : %d, start : %ld, end : %ld\n",mem_regions_array[i].type,*(long*)mem_regions_array[i].start, *(long*)mem_regions_array[i].end);
+    for(int i = 0; i < array_of_regions.regions_index;i++){
+        printf("mem region : %d, start : %ld, end : %ld\n",array_of_regions.arr[i].type,*(long*)array_of_regions.arr[i].start, *(long*)array_of_regions.arr[i].end);
     }
 }
 

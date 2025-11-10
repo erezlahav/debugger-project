@@ -10,7 +10,7 @@
 
 extern debugee_process process_to_debug;
 extern symbols_array* array_of_symbols;
-extern memory_region mem_regions_array[MEMORY_MAPPINGS_SIZE];
+extern regions_array array_of_regions;;
 int run_process(int argc,char** argv){
     process_to_debug.pid = fork();
     if(process_to_debug.pid == 0){
@@ -33,7 +33,7 @@ int run_process(int argc,char** argv){
         }
         load_proc_info(process_to_debug.pid);
         print_mem_regions();
-        update_adressing_of_symtab_symbols(array_of_symbols,*(long*)mem_regions_array[0].start);
+        update_adressing_of_symtab_symbols(array_of_symbols,*(long*)array_of_regions.arr[0].start);
         ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
     }
     
