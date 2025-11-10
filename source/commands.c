@@ -5,11 +5,12 @@
 #include "commands.h"
 #include "debug.h"
 #include "breakpoint.h"
-#include "parse_maps.h"
+#include "maps_parsing.h"
 #include "elf_parser.h"
 
 extern debugee_process process_to_debug;
 extern symbols_array* array_of_symbols;
+extern memory_region mem_regions_array[MEMORY_MAPPINGS_SIZE];
 int run_process(int argc,char** argv){
     process_to_debug.pid = fork();
     if(process_to_debug.pid == 0){
@@ -30,8 +31,9 @@ int run_process(int argc,char** argv){
             printf("process stopped!\n");
             process_to_debug.proc_state = STOPPED;
         }
-        process_to_debug.binary_base = get_base_adress_in_maps(process_to_debug.pid);
-        update_adressing_of_symtab_symbols(array_of_symbols,process_to_debug.binary_base);
+        load_proc_info(process_to_debug.pid);
+        print_mem_regions();
+        update_adressing_of_symtab_symbols(array_of_symbols,*(long*)mem_regions_array[0].start);
         ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
     }
     

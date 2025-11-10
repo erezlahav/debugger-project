@@ -16,6 +16,14 @@ int create_pending_breakpoint(long adress){
     array_of_breakpoints.number_of_breakpoints++;
 }
 
+int resolve_breakpoints(){
+    if(process_to_debug.proc_state == NOT_LOADED){return 0;}
+    for(int i = 0; i < array_of_breakpoints.number_of_breakpoints;i++){
+        breakpoint current_breakpoint = array_of_breakpoints.arr_breakpoints[i];
+        
+    }
+}
+
 void print_breakpoints(){
     for(int i = 0; i < array_of_breakpoints.number_of_breakpoints;i++){
         breakpoint current_breakpoint = array_of_breakpoints.arr_breakpoints[i];
