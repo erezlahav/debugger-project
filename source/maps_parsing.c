@@ -14,9 +14,9 @@ void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and put
     array_of_regions.regions_index = 0;
     char** parts_of_line;
     char** two_adresses;
+    long start_addr;
+    long end_addr;
     for(int i = 0;lines[i] != NULL;i++){
-        long* str_start_addr = malloc(sizeof(long));
-        long* str_end_addr = malloc(sizeof(long));
         parts_of_line = parser(lines[i]," "); //0 index : adress , 1 index : permissions, 2 index : xxxx, 3 index : date of mapping, 4 index : xxxx, 5 index : name of segment
         char* segment_name;
         if(parts_of_line[5] == NULL){
@@ -28,24 +28,24 @@ void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and put
         char* segment_permissions = parts_of_line[1];
         char* segment_mapped_adress = parts_of_line[0];
         two_adresses = parser(segment_mapped_adress,"-");
-        *str_start_addr = strtol(two_adresses[0],NULL,16);
-        *str_end_addr = strtol(two_adresses[1],NULL,16);
+        start_addr = strtol(two_adresses[0],NULL,16);
+        end_addr = strtol(two_adresses[1],NULL,16);
         if(strstr(segment_name,process_to_debug.elf_path) != NULL && strstr(segment_permissions,"x") != NULL){
            array_of_regions.arr[array_of_regions.regions_index].type = BINARY;
-            array_of_regions.arr[array_of_regions.regions_index].start = (void*)(str_start_addr);
-            array_of_regions.arr[array_of_regions.regions_index].end = (void*)(str_end_addr);
+            array_of_regions.arr[array_of_regions.regions_index].start = start_addr;
+            array_of_regions.arr[array_of_regions.regions_index].end = end_addr;
             array_of_regions.regions_index++;
         }
         else if(strstr(segment_name,"[heap]") != NULL){
             array_of_regions.arr[array_of_regions.regions_index].type = HEAP;
-            array_of_regions.arr[array_of_regions.regions_index].start = (void*)(str_start_addr);
-            array_of_regions.arr[array_of_regions.regions_index].end = (void*)(str_end_addr);
+            array_of_regions.arr[array_of_regions.regions_index].start = start_addr;
+            array_of_regions.arr[array_of_regions.regions_index].end = end_addr;
             array_of_regions.regions_index++;
         }
         else if(strstr(segment_name,"[stack]") != NULL){
             array_of_regions.arr[array_of_regions.regions_index].type = STACK;
-            array_of_regions.arr[array_of_regions.regions_index].start = (void*)(str_start_addr);
-            array_of_regions.arr[array_of_regions.regions_index].end = (void*)(str_end_addr);
+            array_of_regions.arr[array_of_regions.regions_index].start = start_addr;
+            array_of_regions.arr[array_of_regions.regions_index].end = end_addr;
             array_of_regions.regions_index++;
         }
         free_double_str_ptr(two_adresses);
@@ -55,7 +55,7 @@ void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and put
 
 void print_mem_regions(){
     for(int i = 0; i < array_of_regions.regions_index;i++){
-        printf("mem region : %d, start : %ld, end : %ld\n",array_of_regions.arr[i].type,*(long*)array_of_regions.arr[i].start, *(long*)array_of_regions.arr[i].end);
+        printf("mem region : %d, start : %ld, end : %ld\n",array_of_regions.arr[i].type, array_of_regions.arr[i].start, array_of_regions.arr[i].end);
     }
 }
 

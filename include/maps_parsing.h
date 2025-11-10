@@ -12,8 +12,8 @@ typedef enum{
 
 typedef struct{
     region_type type;
-    void* start;
-    void* end; 
+    long start;
+    long end; 
 }memory_region;
 
 typedef struct{
