@@ -8,10 +8,9 @@
 #define CHUNK_SIZE 4096
 
 extern debugee_process process_to_debug;
-regions_array array_of_regions;
 
 void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and putting it in global array of mappings 
-    array_of_regions.regions_index = 0;
+    process_to_debug.array_of_regions.regions_index = 0;
     char** parts_of_line;
     char** two_adresses;
     long start_addr;
@@ -31,22 +30,22 @@ void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and put
         start_addr = strtol(two_adresses[0],NULL,16);
         end_addr = strtol(two_adresses[1],NULL,16);
         if(strstr(segment_name,process_to_debug.elf_path) != NULL && strstr(segment_permissions,"x") != NULL){
-           array_of_regions.arr[array_of_regions.regions_index].type = BINARY;
-            array_of_regions.arr[array_of_regions.regions_index].start = start_addr;
-            array_of_regions.arr[array_of_regions.regions_index].end = end_addr;
-            array_of_regions.regions_index++;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].type = BINARY;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].start = start_addr;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].end = end_addr;
+            process_to_debug.array_of_regions.regions_index++;
         }
         else if(strstr(segment_name,"[heap]") != NULL){
-            array_of_regions.arr[array_of_regions.regions_index].type = HEAP;
-            array_of_regions.arr[array_of_regions.regions_index].start = start_addr;
-            array_of_regions.arr[array_of_regions.regions_index].end = end_addr;
-            array_of_regions.regions_index++;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].type = HEAP;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].start = start_addr;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].end = end_addr;
+            process_to_debug.array_of_regions.regions_index++;
         }
         else if(strstr(segment_name,"[stack]") != NULL){
-            array_of_regions.arr[array_of_regions.regions_index].type = STACK;
-            array_of_regions.arr[array_of_regions.regions_index].start = start_addr;
-            array_of_regions.arr[array_of_regions.regions_index].end = end_addr;
-            array_of_regions.regions_index++;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].type = STACK;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].start = start_addr;
+            process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].end = end_addr;
+            process_to_debug.array_of_regions.regions_index++;
         }
         free_double_str_ptr(two_adresses);
         free_double_str_ptr(parts_of_line);
@@ -54,8 +53,8 @@ void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and put
 }
 
 void print_mem_regions(){
-    for(int i = 0; i < array_of_regions.regions_index;i++){
-        printf("mem region : %d, start : %ld, end : %ld\n",array_of_regions.arr[i].type, array_of_regions.arr[i].start, array_of_regions.arr[i].end);
+    for(int i = 0; i < process_to_debug.array_of_regions.regions_index;i++){
+        printf("mem region : %d, start : %ld, end : %ld\n",process_to_debug.array_of_regions.arr[i].type, process_to_debug.array_of_regions.arr[i].start, process_to_debug.array_of_regions.arr[i].end);
     }
 }
 
@@ -89,7 +88,6 @@ char* read_maps(pid_t pid){
 
 int load_proc_info(pid_t pid){
     char* content = read_maps(pid);
-    printf("%s\n",content);
     char** lines = parser(content,"\n");
     parse_lines_of_maps(lines);
     free(content);

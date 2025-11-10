@@ -6,27 +6,26 @@
 #include "breakpoint.h"
 #include "elf_parser.h"
 #include "debug.h"
-extern symbols_array* array_of_symbols;
 extern debugee_process process_to_debug;
-extern breakpoints_array array_of_breakpoints;
 
 int create_pending_breakpoint(long adress){
-    array_of_breakpoints.arr_breakpoints[array_of_breakpoints.number_of_breakpoints].adress = (void*)adress;
-    array_of_breakpoints.arr_breakpoints[array_of_breakpoints.number_of_breakpoints].state = PENDING;
-    array_of_breakpoints.number_of_breakpoints++;
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].adress = adress;
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].state = PENDING;
+    process_to_debug.array_of_breakpoints.number_of_breakpoints++;
 }
 
 int resolve_breakpoints(){
     if(process_to_debug.proc_state == NOT_LOADED){return 0;}
-    for(int i = 0; i < array_of_breakpoints.number_of_breakpoints;i++){
-        breakpoint current_breakpoint = array_of_breakpoints.arr_breakpoints[i];
+    for(int i = 0; i < process_to_debug.array_of_breakpoints.number_of_breakpoints;i++){
+        breakpoint current_breakpoint = process_to_debug.array_of_breakpoints.arr_breakpoints[i];
+        
         
     }
 }
 
 void print_breakpoints(){
-    for(int i = 0; i < array_of_breakpoints.number_of_breakpoints;i++){
-        breakpoint current_breakpoint = array_of_breakpoints.arr_breakpoints[i];
+    for(int i = 0; i < process_to_debug.array_of_breakpoints.number_of_breakpoints;i++){
+        breakpoint current_breakpoint = process_to_debug.array_of_breakpoints.arr_breakpoints[i];
         printf("breakpoint %d : adress : %ld, state : %d\n",i,current_breakpoint.adress,current_breakpoint.state);
     }
 }
@@ -50,7 +49,7 @@ int set_breakpoint(int argc,char** argv){
 
 
 int break_symbol(char* symbol_name){
-    symbol* target_symbol = find_symbol_by_name(array_of_symbols,symbol_name);
+    symbol* target_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,symbol_name);
     if(target_symbol == NULL){
         printf("symbol not found\n");
         return 0;
@@ -86,7 +85,7 @@ int set_break_raw_adress(char* addr_to_break){
 
 
 int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol){
-    symbol* target_symbol = find_symbol_by_name(array_of_symbols,symbol_name);
+    symbol* target_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,symbol_name);
     if(target_symbol == NULL){
         printf("symbol not found!\n");
     }

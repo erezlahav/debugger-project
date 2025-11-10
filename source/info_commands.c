@@ -5,7 +5,6 @@
 #include "elf_parser.h"
 #include "debug.h"
 
-extern symbols_array* array_of_symbols;
 extern debugee_process process_to_debug;
 info_commands functions_info[] = {
     {"registers",info_registers,"info all the current thread registers"},
@@ -41,9 +40,9 @@ int info_registers(int argc, char** argv){
 
 int info_functions(int argc, char** argv){
     printf("in info functions!\n");
-    for(int i = 0; i < array_of_symbols->number_of_symbols;i++){
-        if(array_of_symbols->symbols[i].type == FUNC){
-            printf("0x%08lx     %s\n",array_of_symbols->symbols[i].adress,array_of_symbols->symbols[i].name);
+    for(int i = 0; i < process_to_debug.array_of_symbols->number_of_symbols;i++){
+        if(process_to_debug.array_of_symbols->symbols[i].type == FUNC){
+            printf("0x%08lx     %s\n",process_to_debug.array_of_symbols->symbols[i].adress,process_to_debug.array_of_symbols->symbols[i].name);
         }
     }
 }

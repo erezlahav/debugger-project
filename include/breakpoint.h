@@ -9,7 +9,7 @@ typedef enum{
 }bp_state;
 
 typedef struct{
-    void* adress;
+    long adress;
     uint64_t orig_data;
     bp_state state;
 }breakpoint;

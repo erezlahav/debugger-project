@@ -15,8 +15,6 @@
 #define MAX_AMOUNT_OF_BREAKPOINTS 100
 
 debugee_process process_to_debug;
-symbols_array* array_of_symbols;
-breakpoints_array array_of_breakpoints;
 int main(int argc,char* argv[],char* envp[]){
     
 
@@ -25,8 +23,8 @@ int main(int argc,char* argv[],char* envp[]){
         exit(0);
     }
     
-    array_of_breakpoints.number_of_breakpoints = 0;
-    array_of_breakpoints.arr_breakpoints = malloc(sizeof(breakpoint)* MAX_AMOUNT_OF_BREAKPOINTS);
+    process_to_debug.array_of_breakpoints.number_of_breakpoints = 0;
+    process_to_debug.array_of_breakpoints.arr_breakpoints = malloc(sizeof(breakpoint)* MAX_AMOUNT_OF_BREAKPOINTS);
 
     if(strcmp(argv[1],"-run") == 0){
         printf("executing -run to process\n");
@@ -40,7 +38,7 @@ int main(int argc,char* argv[],char* envp[]){
             exit(0);
         }
         //printf("%s\n",process_to_debug.elf_path);
-        array_of_symbols = get_symbols_from_file(elf_target_ptr);
+        process_to_debug.array_of_symbols = get_symbols_from_file(elf_target_ptr);
         fclose(elf_target_ptr);
 
         debug_process(process_to_debug.elf_path);

@@ -9,8 +9,6 @@
 #include "elf_parser.h"
 
 extern debugee_process process_to_debug;
-extern symbols_array* array_of_symbols;
-extern regions_array array_of_regions;;
 int run_process(int argc,char** argv){
     process_to_debug.pid = fork();
     if(process_to_debug.pid == 0){
@@ -33,7 +31,7 @@ int run_process(int argc,char** argv){
         }
         load_proc_info(process_to_debug.pid);
         print_mem_regions();
-        update_adressing_of_symtab_symbols(array_of_symbols, array_of_regions.arr[0].start);
+        update_adressing_of_symtab_symbols(process_to_debug.array_of_symbols, process_to_debug.array_of_regions.arr[0].start);
         ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
     }
     
