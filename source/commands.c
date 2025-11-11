@@ -30,7 +30,6 @@ int run_process(int argc,char** argv){
             process_to_debug.proc_state = STOPPED;
         }
         load_proc_info(process_to_debug.pid);
-        print_mem_regions();
         update_adressing_of_symtab_symbols(process_to_debug.array_of_symbols, process_to_debug.array_of_regions.arr[0].start);
         ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
     }

@@ -4,7 +4,7 @@
 #include "info_commands.h"
 #include "elf_parser.h"
 #include "debug.h"
-
+#include "breakpoint.h"
 extern debugee_process process_to_debug;
 info_commands functions_info[] = {
     {"registers",info_registers,"info all the current thread registers"},
@@ -50,4 +50,5 @@ int info_functions(int argc, char** argv){
 
 int info_breakpoints(int argc, char** argv){
     printf("in info breakpoints\n");
+    print_breakpoints();
 }
