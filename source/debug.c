@@ -13,7 +13,7 @@
 #include "commands.h"
 #include "breakpoint.h"
 
-
+extern debugee_process process_to_debug;
 
 const command_table table_commands[] = {
     {"info",info,"help displaying data like functions/registers and more..."},
@@ -45,12 +45,23 @@ int handle_command(char* command){
 
 int debug_process(char* elf_path){
     char* input_command = malloc(sizeof(char)*INPUT_SIZE);
-    int exit = 0;
-
-    while(!exit){
-        printf(">");
-        fgets(input_command,INPUT_SIZE,stdin);
-        handle_command(input_command);
+    int status;
+    while(1){
+        if(process_to_debug.proc_state == NOT_LOADED | process_to_debug.proc_state == STOPPED){
+            printf(">");
+            fgets(input_command,INPUT_SIZE,stdin);
+            handle_command(input_command);
+        }
+        else if(process_to_debug.proc_state == RUNNING){
+            waitpid(process_to_debug.pid,&status,0);
+            if(WIFSTOPPED(status)){
+                printf("process stopped\n");
+            }
+            else if(WIFEXITED(status)){
+                printf("child exited!\n");
+                break;
+            }
+        }
     }
 }
 

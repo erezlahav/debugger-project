@@ -1,17 +1,46 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-
+#include <sys/ptrace.h>
+#include <errno.h>
 #include "breakpoint.h"
 #include "elf_parser.h"
 #include "debug.h"
 extern debugee_process process_to_debug;
 
+int ptrace_breakpoint(breakpoint* bp){
+    if(bp->state == RESOLVED){
+        return 0;
+    }
+    printf("adress : %ld\n",bp->adress);
+    errno = 0;
+    long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,bp->adress,NULL);
+    bp->orig_data = res;
+    printf("res : %ld\n",res);
+    ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->adress,0xCC);
+}
+
+
 int create_pending_breakpoint(long adress){
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].adress = adress;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].state = PENDING;
     process_to_debug.array_of_breakpoints.number_of_breakpoints++;
+}
+
+int create_resolved_breakpoint(long adress){
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].adress = adress;
+    ptrace_breakpoint(&process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints]);
+    process_to_debug.array_of_breakpoints.number_of_breakpoints++;
+}
+
+
+int create_breakpoint(long adress){
+    if(process_to_debug.proc_state == NOT_LOADED){
+        create_pending_breakpoint(adress);
+    }
+    else{
+        create_resolved_breakpoint(adress);
+    }
 }
 
 int resolve_breakpoints(){
@@ -56,7 +85,7 @@ int break_symbol(char* symbol_name){
     }
     else{
         long adress_of_relitive_symbol = target_symbol->adress;
-        create_pending_breakpoint(adress_of_relitive_symbol);        
+        create_breakpoint(adress_of_relitive_symbol);        
     }
 }
 
@@ -80,7 +109,7 @@ int handle_star_breakpoint(char** argv){
 
 int set_break_raw_adress(char* addr_to_break){
     long break_adress = string_addr_to_long(addr_to_break);
-    create_pending_breakpoint(break_adress);
+    create_breakpoint(break_adress);
 }
 
 
@@ -92,7 +121,7 @@ int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol){
     else{
         long adress_of_relitive_symbol = target_symbol->adress;
         adress_of_relitive_symbol += offset_from_symbol;
-        create_pending_breakpoint(adress_of_relitive_symbol);
+        create_breakpoint(adress_of_relitive_symbol);
     }
     return 0;
 }

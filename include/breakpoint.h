@@ -10,7 +10,7 @@ typedef enum{
 
 typedef struct{
     long adress;
-    uint64_t orig_data;
+    long orig_data;
     bp_state state;
 }breakpoint;
 
