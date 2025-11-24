@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
-
+#include <stdio.h>
 #include "debug.h"
 #include "elf_parser.h"
 #include "utils.h"
@@ -37,6 +37,7 @@ int main(int argc,char* argv[],char* envp[]){
             printf("fopen failed!\n");
             exit(0);
         }
+        process_to_debug.PIE = get_pie_status(elf_target_ptr);
         process_to_debug.array_of_symbols = get_symbols_from_file(elf_target_ptr);
         fclose(elf_target_ptr);
 

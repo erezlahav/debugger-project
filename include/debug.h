@@ -22,6 +22,7 @@ typedef enum{
 
 typedef struct{
     char* elf_path;
+    bool PIE;
     RUNNING_STATE proc_state;
     pid_t pid;
     regions_array array_of_regions;

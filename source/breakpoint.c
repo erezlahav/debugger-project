@@ -12,9 +12,18 @@ int ptrace_breakpoint(breakpoint* bp){
     if(bp->state == RESOLVED){
         return 0;
     }
+    if(process_to_debug.proc_state == RUNNING){
+        printf("running\n");
+    }
     printf("adress : %ld\n",bp->adress);
     errno = 0;
     long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,bp->adress,NULL);
+    if (res == -1 && errno != 0) {
+        printf("ptrace failed: %s\n", strerror(errno));
+    } 
+    else {
+        printf("res: 0x%lx\n", res);
+    }
     bp->orig_data = res;
     printf("res : %ld\n",res);
     ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->adress,0xCC);

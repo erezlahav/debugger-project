@@ -1,10 +1,19 @@
 #include "elf_parser.h"
+#include <elf.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <string.h>
+#include <stdbool.h>
+#include "debug.h"
 
-
+extern debugee_process process_to_debug;
 
 Elf64_Ehdr* get_elf_header(FILE* elf_file_ptr){
     Elf64_Ehdr* elf_header = malloc(sizeof(Elf64_Ehdr));
     size_t bytes_read = fread(elf_header,sizeof(Elf64_Ehdr), 1, elf_file_ptr);
+    fseek(elf_file_ptr,0,SEEK_SET);
     return elf_header;
 }
 
@@ -13,6 +22,10 @@ Elf64_Addr get_entry_point(Elf64_Ehdr* elf_header){
     return elf_header->e_entry;
 }
 
+bool get_pie_status(FILE* elf_file_ptr){
+    Elf64_Ehdr* elf_header = get_elf_header(elf_file_ptr);
+    return elf_header->e_type == ET_DYN;
+}
 
 Elf64_Shdr* get_section_headers(Elf64_Ehdr* elf_header,FILE* elf_file_ptr){
     Elf64_Off section_headers_offset = elf_header->e_shoff;
@@ -182,10 +195,14 @@ symbol* find_symbol_by_name(symbols_array* array_of_symbols,char* name){
 }
 
 
+
+
 void update_adressing_of_symtab_symbols(symbols_array* array_of_symbols,long base_binary){
-    for(int i = 0; i < array_of_symbols->number_of_symbols;i++){
-        if(array_of_symbols->symbols[i].table_type == symtab){
-            array_of_symbols->symbols[i].adress += base_binary;
+    if(process_to_debug.PIE){
+        for(int i = 0; i < array_of_symbols->number_of_symbols;i++){
+            if(array_of_symbols->symbols[i].table_type == symtab){
+                array_of_symbols->symbols[i].adress += base_binary;
+            }
         }
     }
 }
