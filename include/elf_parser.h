@@ -33,6 +33,10 @@ typedef struct{
 Elf64_Ehdr* get_elf_header(FILE* elf_file_ptr);
 Elf64_Addr get_entry_point(Elf64_Ehdr* elf_header);
 bool get_pie_status(FILE* elf_file_ptr);
+Elf64_Phdr* get_program_headers(Elf64_Ehdr* elf_header,FILE* elf_file_ptr);
+Elf64_Phdr* get_text_segment_ph(Elf64_Phdr* program_headers_array,int num_of_program_headers);
+long get_virtual_addr_from_text_segment_ph(Elf64_Phdr* text_segment_ph);
+long get_loading_vaddr_of_text_segment(FILE* elf_file_ptr);
 Elf64_Shdr* get_section_headers(Elf64_Ehdr* elf_header,FILE* elf_file_ptr);
 Elf64_Shdr* find_shstrtab_in_section_headers(Elf64_Shdr* section_headers,Elf64_Ehdr* elf_header);
 uint16_t get_number_of_section_headers(Elf64_Ehdr* elf_header);

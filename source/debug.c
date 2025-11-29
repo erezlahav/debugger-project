@@ -26,6 +26,7 @@ const command_table table_commands[] = {
 
 
 int handle_command(char* command){
+    printf("command : %s\n",command);
     int* argc = malloc(sizeof(int));
     char** commands = parse_command(command,argc);
     if(commands == NULL){
@@ -56,6 +57,7 @@ int debug_process(char* elf_path){
             waitpid(process_to_debug.pid,&status,0);
             if(WIFSTOPPED(status)){
                 printf("process stopped\n");
+                process_to_debug.proc_state = STOPPED;
             }
             else if(WIFEXITED(status)){
                 printf("child exited!\n");

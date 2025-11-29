@@ -1,4 +1,3 @@
-#include "elf_parser.h"
 #include <elf.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,12 +5,15 @@
 #include <inttypes.h>
 #include <string.h>
 #include <stdbool.h>
+
 #include "debug.h"
+#include "elf_parser.h"
 
 extern debugee_process process_to_debug;
 
 Elf64_Ehdr* get_elf_header(FILE* elf_file_ptr){
     Elf64_Ehdr* elf_header = malloc(sizeof(Elf64_Ehdr));
+    fseek(elf_file_ptr,0,SEEK_SET);
     size_t bytes_read = fread(elf_header,sizeof(Elf64_Ehdr), 1, elf_file_ptr);
     fseek(elf_file_ptr,0,SEEK_SET);
     return elf_header;
@@ -24,8 +26,44 @@ Elf64_Addr get_entry_point(Elf64_Ehdr* elf_header){
 
 bool get_pie_status(FILE* elf_file_ptr){
     Elf64_Ehdr* elf_header = get_elf_header(elf_file_ptr);
-    return elf_header->e_type == ET_DYN;
+    bool is_pie = elf_header->e_type == ET_DYN;
+    free(elf_header);
+    return is_pie;
 }
+
+
+Elf64_Phdr* get_program_headers(Elf64_Ehdr* elf_header,FILE* elf_file_ptr){
+    Elf64_Off offset_of_program_headers = elf_header->e_phoff;
+    Elf64_Phdr* program_headers_array = malloc(sizeof(Elf64_Phdr) * elf_header->e_phnum);
+    fseek(elf_file_ptr,offset_of_program_headers,SEEK_SET);
+    fread(program_headers_array,sizeof(Elf64_Phdr),elf_header->e_phnum,elf_file_ptr);
+    fseek(elf_file_ptr,0,SEEK_SET);
+    return program_headers_array;
+}
+
+
+Elf64_Phdr* get_text_segment_ph(Elf64_Phdr* program_headers_array,int num_of_program_headers){
+    for(int i = 0; i < num_of_program_headers;i++){
+        if(program_headers_array[i].p_type == PT_LOAD && (program_headers_array[i].p_flags & PF_X == 1)){
+            return &program_headers_array[i];
+        }
+    }
+    return NULL;
+}
+
+
+long get_virtual_addr_from_text_segment_ph(Elf64_Phdr* text_segment_ph){
+    return (long)text_segment_ph->p_vaddr;
+}
+
+long get_loading_vaddr_of_text_segment(FILE* elf_file_ptr){
+    Elf64_Ehdr* elf_header = get_elf_header(elf_file_ptr);
+    Elf64_Phdr* program_headers_array = get_program_headers(elf_header,elf_file_ptr);
+    Elf64_Phdr* text_segment_ph = get_text_segment_ph(program_headers_array,elf_header->e_phnum);
+    long virtual_loading_adress = get_virtual_addr_from_text_segment_ph(text_segment_ph);
+    return virtual_loading_adress;
+}
+
 
 Elf64_Shdr* get_section_headers(Elf64_Ehdr* elf_header,FILE* elf_file_ptr){
     Elf64_Off section_headers_offset = elf_header->e_shoff;
@@ -39,7 +77,7 @@ Elf64_Shdr* get_section_headers(Elf64_Ehdr* elf_header,FILE* elf_file_ptr){
         fread(&section_headers_array[i],sizeof(Elf64_Shdr),1,elf_file_ptr);
     }
 
-
+    fseek(elf_file_ptr,0,SEEK_SET);
     return section_headers_array;
 }
 
@@ -201,6 +239,7 @@ void update_adressing_of_symtab_symbols(symbols_array* array_of_symbols,long bas
     if(process_to_debug.PIE){
         for(int i = 0; i < array_of_symbols->number_of_symbols;i++){
             if(array_of_symbols->symbols[i].table_type == symtab){
+                array_of_symbols->symbols[i].adress -= process_to_debug.text_segment_offset_va;
                 array_of_symbols->symbols[i].adress += base_binary;
             }
         }

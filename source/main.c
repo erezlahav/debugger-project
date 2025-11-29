@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include "debug.h"
 #include "elf_parser.h"
@@ -25,7 +26,6 @@ int main(int argc,char* argv[],char* envp[]){
     
     process_to_debug.array_of_breakpoints.number_of_breakpoints = 0;
     process_to_debug.array_of_breakpoints.arr_breakpoints = malloc(sizeof(breakpoint)* MAX_AMOUNT_OF_BREAKPOINTS);
-
     if(strcmp(argv[1],"-run") == 0){
         printf("executing -run to process\n");
         process_to_debug.proc_state = NOT_LOADED;
@@ -37,7 +37,11 @@ int main(int argc,char* argv[],char* envp[]){
             printf("fopen failed!\n");
             exit(0);
         }
+
         process_to_debug.PIE = get_pie_status(elf_target_ptr);
+        printf("PIE : %d\n",process_to_debug.PIE);
+        process_to_debug.text_segment_offset_va = get_loading_vaddr_of_text_segment(elf_target_ptr);
+        printf("%ld\n",process_to_debug.text_segment_offset_va);
         process_to_debug.array_of_symbols = get_symbols_from_file(elf_target_ptr);
         fclose(elf_target_ptr);
 
