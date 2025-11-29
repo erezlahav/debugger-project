@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-
+#include "elf_parser.h"
 typedef enum{
     PENDING,
     RESOLVED,
@@ -9,8 +9,10 @@ typedef enum{
 }bp_state;
 
 typedef struct{
-    long adress;
+    long abs_adress;
     long orig_data;
+    symbol* bp_symbol; //NULL if NOT exists
+    long offset_from_symbol; //0 if not symbol and 0 if no offset
     bp_state state;
 }breakpoint;
 
@@ -19,11 +21,14 @@ typedef struct{
     int number_of_breakpoints;
 }breakpoints_array;
 
-
-int create_pending_breakpoint(long adress);
+int ptrace_breakpoint(breakpoint* bp);
+int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
+int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
+int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
+int resolve_breakpoints();
 void print_breakpoints();
 int set_breakpoint(int argc,char** argv);
-int break_symbol(char* symbol);
+int break_symbol(char* symbol_name);
 int handle_star_breakpoint(char** argv);
 int set_break_raw_adress(char* addr_to_break);
 int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol);

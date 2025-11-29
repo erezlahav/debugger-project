@@ -31,6 +31,7 @@ int run_process(int argc,char** argv){
         }
         load_proc_info(process_to_debug.pid);
         update_adressing_of_symtab_symbols(process_to_debug.array_of_symbols, process_to_debug.array_of_regions.arr[0].start);
+        resolve_breakpoints();
         //ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
     }
     

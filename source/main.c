@@ -37,11 +37,9 @@ int main(int argc,char* argv[],char* envp[]){
             printf("fopen failed!\n");
             exit(0);
         }
-
+//get status of elf file target process
         process_to_debug.PIE = get_pie_status(elf_target_ptr);
-        printf("PIE : %d\n",process_to_debug.PIE);
         process_to_debug.text_segment_offset_va = get_loading_vaddr_of_text_segment(elf_target_ptr);
-        printf("%ld\n",process_to_debug.text_segment_offset_va);
         process_to_debug.array_of_symbols = get_symbols_from_file(elf_target_ptr);
         fclose(elf_target_ptr);
 
