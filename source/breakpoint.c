@@ -23,8 +23,10 @@ int ptrace_breakpoint(breakpoint* bp){
         printf("ptrace failed: %s\n", strerror(errno));
     } 
     bp->orig_data = res;
-    printf("res : %ld\n",res);
-    ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->abs_adress,0xCC);
+    long new_instruction_with_cc = (res & 0xffffffffffffff00) | 0xcc;
+    printf("res : %lx\n",res);
+    printf("new instruction : %lx\n",new_instruction_with_cc);
+    ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->abs_adress,new_instruction_with_cc);
 }
 
 

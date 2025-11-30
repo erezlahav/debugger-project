@@ -72,8 +72,11 @@ int debug_process(char* elf_path){
         else if(process_to_debug.proc_state == RUNNING){
             waitpid(process_to_debug.pid,&status,0);
             if(WIFSTOPPED(status)){
-                printf("process stopped\n");
                 process_to_debug.proc_state = STOPPED;
+                int sig = WSTOPSIG(status);
+                if(sig == SIGTRAP){
+                    printf("breakpoint hit!\n");
+                }
             }
             else if(WIFEXITED(status)){
                 printf("child exited!\n");
