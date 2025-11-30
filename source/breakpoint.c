@@ -9,14 +9,12 @@
 extern debugee_process process_to_debug;
 
 int ptrace_breakpoint(breakpoint* bp){
-    printf("in ptrace_breakpoint\n");
     if(process_to_debug.proc_state == NOT_LOADED){
         return 0;
     }
     if(bp->state != RESOLVED){
         return 0;
     }
-    printf("adress : %ld\n",bp->abs_adress);
     errno = 0;
     long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,bp->abs_adress,NULL);
     if (res == -1 && errno != 0) {
@@ -24,13 +22,12 @@ int ptrace_breakpoint(breakpoint* bp){
     } 
     bp->orig_data = res;
     long new_instruction_with_cc = (res & 0xffffffffffffff00) | 0xcc;
-    printf("res : %lx\n",res);
-    printf("new instruction : %lx\n",new_instruction_with_cc);
     ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->abs_adress,new_instruction_with_cc);
 }
 
 
 int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress){
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].bp_symbol = bp_symbol;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].offset_from_symbol = offset_from_symbol;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].abs_adress = abs_adress;
@@ -39,22 +36,34 @@ int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs
 }
 
 int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress){
-    printf("in create_resolved_breakpoint\n");
     if(process_to_debug.proc_state == NOT_LOADED){
         return 0;
     }
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].abs_adress = abs_adress;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].offset_from_symbol = offset_from_symbol;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].bp_symbol = bp_symbol;
-    process_to_debug.array_of_breakpoints.number_of_breakpoints++;
     if(bp_symbol != NULL){
         long symbol_adress = bp_symbol->adress;
         process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].abs_adress = symbol_adress + offset_from_symbol;
     }
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].state = RESOLVED;
+    
     ptrace_breakpoint(&process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints]);
+    process_to_debug.array_of_breakpoints.number_of_breakpoints++;
 }
 
+
+
+breakpoint* get_breakpoint_by_addr(long adress){
+    breakpoints_array arr_of_breakpoints = process_to_debug.array_of_breakpoints;
+    for(int i = 0; i < arr_of_breakpoints.number_of_breakpoints;i++){
+        if(arr_of_breakpoints.arr_breakpoints[i].abs_adress == adress){
+            return &arr_of_breakpoints.arr_breakpoints[i];
+        }
+    }
+    return NULL; //if breakpoint not exists
+}
 
 int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress){
     if(process_to_debug.proc_state == NOT_LOADED){
@@ -81,16 +90,19 @@ int resolve_breakpoints(){
     }
 }
 
+void print_breakpoint(breakpoint* bp){
+    printf("breakpoint %d : adress : %ld, state : %d\n",bp->index,bp->abs_adress,bp->state);
+}
+
 void print_breakpoints(){
     for(int i = 0; i < process_to_debug.array_of_breakpoints.number_of_breakpoints;i++){
         breakpoint current_breakpoint = process_to_debug.array_of_breakpoints.arr_breakpoints[i];
-        printf("breakpoint %d : adress : %ld, state : %d\n",i,current_breakpoint.abs_adress,current_breakpoint.state);
+        print_breakpoint(&current_breakpoint);
     }
 }
 
 
 int set_breakpoint(int argc,char** argv){
-    printf("in breakpoint\n");
     if(argc != 2){
         printf("breakpoint syntax incorrect\n");
         return 0;
@@ -107,7 +119,6 @@ int set_breakpoint(int argc,char** argv){
 
 
 int break_symbol(char* symbol_name){
-    printf("in break_symbol\n");
     symbol* target_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,symbol_name);
     if(target_symbol == NULL){
         printf("symbol not found\n");

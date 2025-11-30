@@ -37,4 +37,5 @@ extern const command_table table_commands[];
 int get_registers(pid_t pid, struct user_regs_struct* regs);
 int set_registers(pid_t pid, struct user_regs_struct* regs);
 int handle_command(char* command);
+int handle_stopped_process(pid_t pid, int status);
 int debug_process(char* elf_path);

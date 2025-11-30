@@ -59,6 +59,20 @@ int handle_command(char* command){
     return 0;
 }
 
+int handle_stopped_process(pid_t pid, int status){
+    process_to_debug.proc_state = STOPPED;
+    int signal = WSTOPSIG(status);
+    if(signal == SIGTRAP){
+        printf("breakpoint accured! ");
+        struct user_regs_struct regs;
+        get_registers(pid, &regs);
+        breakpoint* bp = get_breakpoint_by_addr(regs.rip-1); //null if no breakpoint match
+        if(bp != NULL){
+            print_breakpoint(bp);
+        }
+    }
+}
+
 
 int debug_process(char* elf_path){
     char* input_command = malloc(sizeof(char)*INPUT_SIZE);
@@ -72,11 +86,7 @@ int debug_process(char* elf_path){
         else if(process_to_debug.proc_state == RUNNING){
             waitpid(process_to_debug.pid,&status,0);
             if(WIFSTOPPED(status)){
-                process_to_debug.proc_state = STOPPED;
-                int sig = WSTOPSIG(status);
-                if(sig == SIGTRAP){
-                    printf("breakpoint hit!\n");
-                }
+                handle_stopped_process(process_to_debug.pid, status);
             }
             else if(WIFEXITED(status)){
                 printf("child exited!\n");

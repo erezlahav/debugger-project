@@ -9,6 +9,7 @@ typedef enum{
 }bp_state;
 
 typedef struct{
+    int index;
     long abs_adress;
     long orig_data;
     symbol* bp_symbol; //NULL if NOT exists
@@ -24,8 +25,10 @@ typedef struct{
 int ptrace_breakpoint(breakpoint* bp);
 int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
 int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
+breakpoint* get_breakpoint_by_addr(long adress);
 int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
 int resolve_breakpoints();
+void print_breakpoint(breakpoint* bp);
 void print_breakpoints();
 int set_breakpoint(int argc,char** argv);
 int break_symbol(char* symbol_name);

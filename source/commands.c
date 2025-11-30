@@ -2,6 +2,9 @@
 #include <sys/ptrace.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/user.h>
+#include <sys/wait.h>
+
 #include "commands.h"
 #include "debug.h"
 #include "breakpoint.h"
@@ -24,15 +27,15 @@ int run_process(int argc,char** argv){
 
     else{
         int status;
-        waitpid(process_to_debug.pid,&status,NULL);
+        waitpid(process_to_debug.pid,&status,0);
         if(WIFSTOPPED(status)){
-            printf("process stopped!\n");
             process_to_debug.proc_state = STOPPED;
         }
         load_proc_info(process_to_debug.pid);
         update_adressing_of_symtab_symbols(process_to_debug.array_of_symbols, process_to_debug.array_of_regions.arr[0].start);
         resolve_breakpoints();
-        //ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
+        ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
+        process_to_debug.proc_state = RUNNING;
     }
     
 }
@@ -43,6 +46,13 @@ int continue_proc(int argc,char** argv){
         return 0;
     }
     if(process_to_debug.pid != -1){
+        struct user_regs_struct regs;
+        get_registers(process_to_debug.pid, &regs);
+        breakpoint* bp = get_breakpoint_by_addr(regs.rip-1);
+        if(bp != NULL){
+            long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,regs.rip-1,NULL); //read the former instruction to check if there is a 0xCC byte
+        }
+        
         ptrace(PTRACE_CONT,process_to_debug.pid,NULL,0);
         process_to_debug.proc_state = RUNNING;
         return 1;
