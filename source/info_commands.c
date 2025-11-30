@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <sys/user.h>
 
 #include "info_commands.h"
 #include "elf_parser.h"
@@ -29,10 +30,38 @@ int info(int argc,char** argv){
 
 
 
+static void print_registers(struct user_regs_struct* regs){
+    printf("rax = 0x%016llx\n",regs->rax);
+    printf("rbx = 0x%016llx\n",regs->rbx);
+    printf("rcx = 0x%016llx\n",regs->rcx);
+    printf("rdx = 0x%016llx\n",regs->rdx);
+    printf("rsi = 0x%016llx\n",regs->rsi);
+    printf("rdi = 0x%016llx\n",regs->rdi);
+    printf("rbp = 0x%016llx\n",regs->rbp);
+    printf("r8 = 0x%016llx\n",regs->r8);
+    printf("r9 = 0x%016llx\n",regs->r9);
+    printf("r10 = 0x%016llx\n",regs->r10);
+    printf("r11 = 0x%016llx\n",regs->r11);
+    printf("r12 = 0x%016llx\n",regs->r12);
+    printf("r13 = 0x%016llx\n",regs->r13);
+    printf("r14 = 0x%016llx\n",regs->r14);
+    printf("r15 = 0x%016llx\n",regs->r15);
+    printf("rip = 0x%016llx\n",regs->rip);
+    printf("eflags = 0x%016llx\n",regs->eflags);
+    printf("fs_base = 0x%016llx\n",regs->fs_base);
+    printf("gs_base = 0x%016llx\n",regs->gs_base);
+}
+
+
 int info_registers(int argc, char** argv){
-    printf("in info registers\n");
-    if(process_to_debug.proc_state != STOPPED || process_to_debug.proc_state != RUNNING){
-        printf("no registers avalible\n");
+    if(process_to_debug.proc_state == STOPPED || process_to_debug.proc_state == RUNNING){
+        struct user_regs_struct regs;
+        get_registers(process_to_debug.pid, &regs);
+        print_registers(&regs);
+    }
+
+    else{
+        printf("The program has no registers now.\n");
     }
 }
 

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <string.h>
-
+#include <sys/user.h>
 
 #include "debug.h"
 #include "parser.h"
@@ -23,6 +23,22 @@ const command_table table_commands[] = {
     {"r",run_process,"run the current process after breaking on stop signal before main"},
     {NULL,NULL,NULL}
 };
+
+
+
+int get_registers(pid_t pid, struct user_regs_struct* regs){
+    if(ptrace(PTRACE_GETREGS,pid,NULL,regs) == -1){
+        return 0;
+    }
+    return 1;
+}
+
+int set_registers(pid_t pid, struct user_regs_struct* regs){
+    if(ptrace(PTRACE_SETREGS,pid,NULL,regs) == -1){
+        return 0;
+    }
+    return 1;
+}
 
 
 int handle_command(char* command){
@@ -48,7 +64,7 @@ int debug_process(char* elf_path){
     char* input_command = malloc(sizeof(char)*INPUT_SIZE);
     int status;
     while(1){
-        if(process_to_debug.proc_state == NOT_LOADED | process_to_debug.proc_state == STOPPED){
+        if(process_to_debug.proc_state == NOT_LOADED || process_to_debug.proc_state == STOPPED){
             printf(">");
             fgets(input_command,INPUT_SIZE,stdin);
             handle_command(input_command);
