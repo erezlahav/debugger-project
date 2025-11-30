@@ -10,7 +10,6 @@ typedef struct{
 
 
 int info(int argc,char** argv);
-
 int info_registers(int argc, char** argv);
 int info_functions(int argc, char** argv);
 int info_breakpoints(int argc, char** argv);

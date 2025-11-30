@@ -28,7 +28,41 @@ int info(int argc,char** argv){
     return 0;
 }
 
+static void print_flags(unsigned long eflags){
 
+    typedef struct{
+        const char* name;
+        unsigned long mask;
+    }flag ;
+
+    flag flags[]  = {
+        {"CF", 0x00000001},
+        {"PF", 0x00000004},
+        {"AF", 0x00000010},
+        {"ZF", 0x00000040},
+        {"SF", 0x00000080},
+        {"TF", 0x00000100},
+        {"IF", 0x00000200},
+        {"DF", 0x00000400},
+        {"OF", 0x00000800},
+        {"NT", 0x00004000},
+        {"RF", 0x00010000},
+        {"VM", 0x00020000},
+        {"AC", 0x00040000},
+        {"VIF",0x00080000},
+        {"VIP",0x00100000},
+        {"ID", 0x00200000},
+        {NULL, 0}
+    };
+    printf("[ ");
+    for(int i = 0; flags[i].name != NULL && flags[i].mask != 0;i++){
+        if((eflags & flags[i].mask) == flags[i].mask){
+            printf("%s ",flags[i].name);
+        }
+    }
+    printf(" ]\n");
+
+}
 
 static void print_registers(struct user_regs_struct* regs){
     printf("rax = 0x%016llx\n",regs->rax);
@@ -47,7 +81,8 @@ static void print_registers(struct user_regs_struct* regs){
     printf("r14 = 0x%016llx\n",regs->r14);
     printf("r15 = 0x%016llx\n",regs->r15);
     printf("rip = 0x%016llx\n",regs->rip);
-    printf("eflags = 0x%016llx\n",regs->eflags);
+    printf("eflags = 0x%016llx\t",regs->eflags);
+    print_flags(regs->eflags);
     printf("fs_base = 0x%016llx\n",regs->fs_base);
     printf("gs_base = 0x%016llx\n",regs->gs_base);
 }
