@@ -21,6 +21,7 @@ const command_table table_commands[] = {
     {"exit",exit_debugger,"exit from debugger"},
     {"c",continue_proc,"continue the execution of the process"},
     {"r",run_process,"run the current process after breaking on stop signal before main"},
+    {"si",step_into,"step into instruction(executes one instruction)"},
     {NULL,NULL,NULL}
 };
 

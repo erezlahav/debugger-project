@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/ptrace.h>
 #include <errno.h>
+#include <sys/user.h>
 #include "breakpoint.h"
 #include "elf_parser.h"
 #include "debug.h"
@@ -215,3 +216,18 @@ long string_addr_to_long(char* string_adrr){
     return strtol(string_adrr,NULL,16);
 }
 
+
+
+int check_and_remove_former_bp(pid_t pid){
+    struct user_regs_struct regs;
+    get_registers(process_to_debug.pid, &regs);
+    breakpoint* bp = get_breakpoint_by_addr(regs.rip-1);
+    if(bp != NULL){
+        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,regs.rip-1,NULL); //read the former instruction to check if there is a 0xCC byte
+        ptrace(PTRACE_POKEDATA,process_to_debug.pid,regs.rip-1,bp->orig_data);
+        regs.rip -= 1;
+        set_registers(process_to_debug.pid,&regs);
+        return 1;
+    }
+    return 0;
+}

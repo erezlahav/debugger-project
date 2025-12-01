@@ -45,21 +45,22 @@ int continue_proc(int argc,char** argv){
         return 0;
     }
     if(process_to_debug.pid != -1){
-        struct user_regs_struct regs;
-        get_registers(process_to_debug.pid, &regs);
-        breakpoint* bp = get_breakpoint_by_addr(regs.rip-1);
-        if(bp != NULL){
-            long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,regs.rip-1,NULL); //read the former instruction to check if there is a 0xCC byte
-            ptrace(PTRACE_POKEDATA,process_to_debug.pid,regs.rip-1,bp->orig_data);
-            regs.rip -= 1;
-            set_registers(process_to_debug.pid,&regs);
-        }
-        
+        check_and_remove_former_bp(process_to_debug.pid);
         ptrace(PTRACE_CONT,process_to_debug.pid,NULL,0);
         process_to_debug.proc_state = RUNNING;
         return 1;
     }
     return 0;
+}
+
+
+int step_into(int argc,char** argv){
+    if(process_to_debug.proc_state == LOADED || process_to_debug.proc_state == NOT_LOADED){
+        printf("process is not running yet\n");
+        return 0;
+    }
+    check_and_remove_former_bp(process_to_debug.pid);
+    ptrace(PTRACE_SINGLESTEP,process_to_debug.pid,NULL,0);
 }
 int exit_debugger(int argc,char** argv){
     printf("in exit\n");
