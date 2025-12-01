@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <sys/user.h>
 #include <sys/wait.h>
-
+#include <errno.h>
 #include "commands.h"
 #include "debug.h"
 #include "breakpoint.h"
@@ -16,7 +16,6 @@ int run_process(int argc,char** argv){
     process_to_debug.pid = fork();
     if(process_to_debug.pid == 0){
         ptrace(PTRACE_TRACEME,process_to_debug.pid,NULL,NULL);
-        printf("%s\n",process_to_debug.elf_path);
         int res = execlp(process_to_debug.elf_path,process_to_debug.elf_path,NULL);
         if(res == -1){
             printf("execlp failed\n");
@@ -51,6 +50,9 @@ int continue_proc(int argc,char** argv){
         breakpoint* bp = get_breakpoint_by_addr(regs.rip-1);
         if(bp != NULL){
             long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,regs.rip-1,NULL); //read the former instruction to check if there is a 0xCC byte
+            ptrace(PTRACE_POKEDATA,process_to_debug.pid,regs.rip-1,bp->orig_data);
+            regs.rip -= 1;
+            set_registers(process_to_debug.pid,&regs);
         }
         
         ptrace(PTRACE_CONT,process_to_debug.pid,NULL,0);

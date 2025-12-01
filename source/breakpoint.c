@@ -91,7 +91,7 @@ int resolve_breakpoints(){
 }
 
 void print_breakpoint(breakpoint* bp){
-    printf("breakpoint %d : adress : %ld, state : %d\n",bp->index,bp->abs_adress,bp->state);
+    printf("breakpoint %d : adress : %lx, state : %d\n",bp->index,bp->abs_adress,bp->state);
 }
 
 void print_breakpoints(){

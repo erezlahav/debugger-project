@@ -42,7 +42,6 @@ int set_registers(pid_t pid, struct user_regs_struct* regs){
 
 
 int handle_command(char* command){
-    printf("command : %s\n",command);
     int* argc = malloc(sizeof(int));
     char** commands = parse_command(command,argc);
     if(commands == NULL){
@@ -60,6 +59,7 @@ int handle_command(char* command){
 }
 
 int handle_stopped_process(pid_t pid, int status){
+    printf("process stopped!\n");
     process_to_debug.proc_state = STOPPED;
     int signal = WSTOPSIG(status);
     if(signal == SIGTRAP){
