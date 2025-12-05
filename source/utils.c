@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
+
 #include "utils.h"
 #include "debug.h"
 
@@ -10,6 +11,26 @@
 #define MAX_PATH_SIZE 150
 #define SIZE_OF_PATH 50
 extern debugee_process process_to_debug;
+
+
+char* get_elf_path_by_pid(pid_t pid){
+    char* elf_path = malloc(MAX_PATH_SIZE);
+    char symlink_path[MAX_PATH_SIZE];
+    symlink_path[0] = '\x00'; //because strcat always search for null byte at the start to start copy the buffer to
+    strcat(symlink_path,"/proc/");
+    char pid_str[10];
+    sprintf(pid_str, "%d", pid);
+    strcat(symlink_path,pid_str);
+    strcat(symlink_path,"/exe");
+    ssize_t bytes_read = readlink(symlink_path,elf_path,MAX_PATH_SIZE);
+    if(bytes_read == -1){
+        printf("error accured!\n");
+        return NULL;
+    }
+    elf_path[bytes_read] = '\x00';
+    printf("%s\n",elf_path);
+    return elf_path;
+}
 
 
 

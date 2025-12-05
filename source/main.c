@@ -23,7 +23,7 @@ int main(int argc,char* argv[],char* envp[]){
         printf("Usage: %s -mode <pid>/<path>\n",argv[0]);
         exit(0);
     }
-    
+    FILE* elf_target_ptr = NULL;
     process_to_debug.array_of_breakpoints.number_of_breakpoints = 0;
     process_to_debug.array_of_breakpoints.arr_breakpoints = malloc(sizeof(breakpoint)* MAX_AMOUNT_OF_BREAKPOINTS);
     if(strcmp(argv[1],"-run") == 0){
@@ -32,7 +32,7 @@ int main(int argc,char* argv[],char* envp[]){
         process_to_debug.elf_path = malloc(SIZE_OF_PATH);
         process_to_debug.pid = -1;
         strncpy(process_to_debug.elf_path,argv[2],SIZE_OF_PATH);
-        FILE* elf_target_ptr = get_file_pointer_by_path(process_to_debug.elf_path);
+        elf_target_ptr = get_file_pointer_by_path(process_to_debug.elf_path);
         if(elf_target_ptr == NULL){
             printf("fopen failed!\n");
             exit(0);
@@ -49,6 +49,26 @@ int main(int argc,char* argv[],char* envp[]){
 
     else if(strcmp(argv[1],"-attach") == 0){
         printf("executing -attach to process\n");
+        process_to_debug.pid = atoi(argv[2]);
+        process_to_debug.elf_path = get_elf_path_by_pid(process_to_debug.pid);
+        if(ptrace(PTRACE_ATTACH,process_to_debug.pid,NULL,0) == -1){ //sending SIGSTOP to the currently running process
+            printf("fail\n");
+        }
+        int status;
+        waitpid(process_to_debug.pid,&status,0);
+        if(WIFSTOPPED(status)){
+            process_to_debug.proc_state = STOPPED;
+            printf("process stopped\n");
+        }
+        elf_target_ptr = get_file_pointer_by_path(process_to_debug.elf_path);
+        if(elf_target_ptr == NULL){
+            printf("fopen failed!\n");
+            exit(0);
+        }
+        process_to_debug.PIE = get_pie_status(elf_target_ptr);
+        process_to_debug.text_segment_offset_va = get_loading_vaddr_of_text_segment(elf_target_ptr);
+        process_to_debug.array_of_symbols = get_symbols_from_file(elf_target_ptr);   
+        load_proc_info(process_to_debug.pid);
     }
 
 

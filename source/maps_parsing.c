@@ -29,6 +29,7 @@ void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and put
         two_adresses = parser(segment_mapped_adress,"-");
         start_addr = strtol(two_adresses[0],NULL,16);
         end_addr = strtol(two_adresses[1],NULL,16);
+
         if(strstr(segment_name,process_to_debug.elf_path) != NULL && strstr(segment_permissions,"x") != NULL){
             process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].type = BINARY;
             process_to_debug.array_of_regions.arr[process_to_debug.array_of_regions.regions_index].start = start_addr;

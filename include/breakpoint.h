@@ -38,3 +38,4 @@ int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol);
 int set_break_in_star_symbol(char* break_argument);
 char* get_relitive_symbol_name_and_plus_index(char* break_argument,int* plus_index);
 long string_addr_to_long(char* string_adrr);
+int check_and_remove_former_bp(pid_t pid);
