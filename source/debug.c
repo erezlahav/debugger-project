@@ -42,6 +42,8 @@ int set_registers(pid_t pid, struct user_regs_struct* regs){
 }
 
 
+
+
 int handle_command(char* command){
     int* argc = malloc(sizeof(int));
     char** commands = parse_command(command,argc);
