@@ -32,7 +32,7 @@ typedef struct{
     symbols_array* array_of_symbols;
 }debugee_process;
 
-extern const command_table table_commands[];
+
 
 int get_registers(pid_t pid, struct user_regs_struct* regs);
 int set_registers(pid_t pid, struct user_regs_struct* regs);

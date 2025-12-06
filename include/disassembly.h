@@ -1,0 +1,6 @@
+#pragma once
+
+
+void live_disassemble_symbol(symbol* symbol);
+void static_disassemble_symbol(symbol* symbol);
+void print_disassemble_bytes(unsigned char* bytes_array,size_t size,long start_addr);

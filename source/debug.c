@@ -17,6 +17,7 @@ extern debugee_process process_to_debug;
 
 const command_table table_commands[] = {
     {"info",info,"help displaying data like functions/registers and more..."},
+    {"disass",disassemble_function,"print disassembly representation of the function"},
     {"break",set_breakpoint,"set breakpoint in adress you choose"},
     {"exit",exit_debugger,"exit from debugger"},
     {"c",continue_proc,"continue the execution of the process"},

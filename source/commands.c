@@ -10,6 +10,7 @@
 #include "breakpoint.h"
 #include "maps_parsing.h"
 #include "elf_parser.h"
+#include "disassembly.h"
 
 extern debugee_process process_to_debug;
 int run_process(int argc,char** argv){
@@ -53,6 +54,22 @@ int continue_proc(int argc,char** argv){
     return 0;
 }
 
+int disassemble_function(int argc,char** argv){
+    printf("in disassemble_function\n");
+    printf("symbol name : %s\n",argv[1]);
+    symbol* input_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,argv[1]);
+    if(input_symbol == NULL){
+        printf("symbol not exist\n");
+        return 0;
+    }
+   if(process_to_debug.proc_state == NOT_LOADED){
+        static_disassemble_symbol(input_symbol);
+   }
+   else{
+        live_disassemble_symbol(input_symbol);
+   }
+
+}
 
 int step_into(int argc,char** argv){
     if(process_to_debug.proc_state == LOADED || process_to_debug.proc_state == NOT_LOADED){

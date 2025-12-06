@@ -7,8 +7,13 @@
 
 
 
-void print_disassemble_symbol(symbol* symbol){
+void live_disassemble_symbol(symbol* symbol){
+    printf("in live_disassemble_symbol\n");
+}
 
+
+void static_disassemble_symbol(symbol* symbol){
+    printf("in static_disassemble_symbol\n");
 }
 
 
