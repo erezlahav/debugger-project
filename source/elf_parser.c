@@ -13,7 +13,7 @@ extern debugee_process process_to_debug;
 
 Elf64_Ehdr* get_elf_header(FILE* elf_file_ptr){
     Elf64_Ehdr* elf_header = malloc(sizeof(Elf64_Ehdr));
-    int res = fseek(elf_file_ptr,0,SEEK_SET);
+    fseek(elf_file_ptr,0,SEEK_SET);
     size_t bytes_read = fread(elf_header,sizeof(Elf64_Ehdr), 1, elf_file_ptr);
     fseek(elf_file_ptr,0,SEEK_SET);
     return elf_header;
@@ -52,7 +52,7 @@ Elf64_Phdr* get_text_segment_ph(Elf64_Phdr* program_headers_array,int num_of_pro
 }
 
 
-///////changing!!!!!
+
 
 Elf64_Shdr* get_section_header_by_name(Elf64_Shdr* section_headers_arr,uint16_t number_of_section_headers, char* section_headers_names,char* sh_name){
     for(int i = 0; i < number_of_section_headers;i++){
@@ -74,15 +74,18 @@ unsigned char* get_bytes_array_code_from_symbol(symbol* symbol,FILE* elf_file_pt
 
     Elf64_Off text_section_offset = text_section_header->sh_offset;
     long symbol_adress = symbol->adress;
-    long text_section_rel_sym_adress = symbol_adress;
-    text_section_rel_sym_adress -= process_to_debug.text_segment_offset_va;
-    printf("%lx\n",text_section_rel_sym_adress);
-    printf("%lx\n",text_section_offset);
+    long text_section_rel_sym_adress = symbol_adress - text_section_header->sh_addr;
+    long full_offset_in_elf_file = text_section_offset + text_section_rel_sym_adress;
+    size_t size_of_symbol = symbol->size;
 
+    unsigned char* bytes_array = malloc(size_of_symbol);
+    fseek(elf_file_ptr,full_offset_in_elf_file,SEEK_SET);
+    fread(bytes_array,1,size_of_symbol,elf_file_ptr);
+    return bytes_array;
 }
 
 
-/////end of changing 
+
 
 long get_virtual_addr_from_text_segment_ph(Elf64_Phdr* text_segment_ph){
     return (long)text_segment_ph->p_vaddr;

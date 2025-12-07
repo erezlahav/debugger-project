@@ -90,7 +90,6 @@ char* read_maps(pid_t pid){
 
 int load_proc_info(pid_t pid){
     char* content = read_maps(pid);
-    printf("%s\n",content);
     char** lines = parser(content,"\n");
     parse_lines_of_maps(lines);
     free(content);

@@ -20,7 +20,7 @@ typedef enum{
 typedef struct{
     long adress;
     char* name;
-    uint64_t size;
+    size_t size;
     symbol_type type;
     symbol_table_type table_type;
 }symbol;

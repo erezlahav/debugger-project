@@ -47,6 +47,7 @@ void static_disassemble_symbol(symbol* symbol){
         printf("success\n");
     }
     unsigned char* bytes_array = get_bytes_array_code_from_symbol(symbol,elf_target_ptr);
+    print_disassemble_bytes(bytes_array,symbol->size,symbol->adress);
 }
 
 
