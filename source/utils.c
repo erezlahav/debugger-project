@@ -34,38 +34,38 @@ char* get_elf_path_by_pid(pid_t pid){
 
 
 
-FILE* get_file_pointer_by_path(char* path){
-    FILE* file_ptr;
+char* get_full_path(char* path){
+    char* full_path = malloc(MAX_PATH_SIZE);
     char copy_path[MAX_PATH_SIZE];
     strncpy(copy_path,path,sizeof(copy_path));
-    file_ptr = fopen(path,"rb");
+    FILE* file_ptr = fopen(path,"rb");
     if(file_ptr != NULL){
         if(path[0] == '.'){
-            getcwd(process_to_debug.elf_path,MAX_PATH_SIZE);
-            strcat(process_to_debug.elf_path,copy_path+1);
+            getcwd(full_path,MAX_PATH_SIZE);
+            strcat(full_path,copy_path+1);
         }
-        return file_ptr;
+        return full_path;
     }
     char* path_env;
     path_env = getenv("PATH");
     char** env_paths = parser(path_env,":");
-    file_ptr = get_file_ptr_by_name_from_env(env_paths,path);
+    full_path = get_full_path_from_envs(env_paths,path);
     free_double_str_ptr(env_paths);
-    return file_ptr;
+    return full_path;
 }
 
-FILE* get_file_ptr_by_name_from_env(char** nullble_env_paths,char* target_file){
-    char slash[100];
+char* get_full_path_from_envs(char** nullble_env_paths,char* target_file){
+    char slash[2];
     strcpy(slash,"/");
     char* file_name = strcat(slash,target_file);
     char* full_path;
+    char* path_to_return;
     FILE* ptr_to_file;
     for(int i = 0; nullble_env_paths[i] != NULL;i++){
         full_path = strcat(nullble_env_paths[i],file_name);
         ptr_to_file = fopen(full_path,"rb");
         if(ptr_to_file != NULL){
-            strncpy(process_to_debug.elf_path,full_path,SIZE_OF_PATH);
-            return ptr_to_file;
+            return full_path;
         }
     }
     return NULL;

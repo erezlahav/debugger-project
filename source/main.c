@@ -29,10 +29,9 @@ int main(int argc,char* argv[],char* envp[]){
     if(strcmp(argv[1],"-run") == 0){
         printf("executing -run to process\n");
         process_to_debug.proc_state = NOT_LOADED;
-        process_to_debug.elf_path = malloc(SIZE_OF_PATH);
+        process_to_debug.elf_path = get_full_path(argv[2]);
         process_to_debug.pid = -1;
-        strncpy(process_to_debug.elf_path,argv[2],SIZE_OF_PATH);
-        elf_target_ptr = get_file_pointer_by_path(process_to_debug.elf_path);
+        elf_target_ptr = fopen(process_to_debug.elf_path,"rb");
         if(elf_target_ptr == NULL){
             printf("fopen failed!\n");
             exit(0);
@@ -60,7 +59,7 @@ int main(int argc,char* argv[],char* envp[]){
             process_to_debug.proc_state = STOPPED;
             printf("process stopped\n");
         }
-        elf_target_ptr = get_file_pointer_by_path(process_to_debug.elf_path);
+        elf_target_ptr = fopen(process_to_debug.elf_path,"rb");
         if(elf_target_ptr == NULL){
             printf("fopen failed!\n");
             exit(0);

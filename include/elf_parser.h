@@ -35,6 +35,8 @@ Elf64_Addr get_entry_point(Elf64_Ehdr* elf_header);
 bool get_pie_status(FILE* elf_file_ptr);
 Elf64_Phdr* get_program_headers(Elf64_Ehdr* elf_header,FILE* elf_file_ptr);
 Elf64_Phdr* get_text_segment_ph(Elf64_Phdr* program_headers_array,int num_of_program_headers);
+Elf64_Shdr* get_section_header_by_name(Elf64_Shdr* section_headers_arr,uint16_t number_of_section_headers, char* section_headers_names,char* sh_name);
+unsigned char* get_bytes_array_code_from_symbol(symbol* symbol,FILE* elf_file_ptr);
 long get_virtual_addr_from_text_segment_ph(Elf64_Phdr* text_segment_ph);
 long get_loading_vaddr_of_text_segment(FILE* elf_file_ptr);
 Elf64_Shdr* get_section_headers(Elf64_Ehdr* elf_header,FILE* elf_file_ptr);

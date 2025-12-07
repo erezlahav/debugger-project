@@ -1,7 +1,7 @@
 #pragma once
 
 char* get_elf_path_by_pid(pid_t pid);
-FILE* get_file_pointer_by_path(char* path);
-FILE* get_file_ptr_by_name_from_env(char** nullble_env_paths,char* target_file);
+char* get_full_path(char* path);
+char* get_full_path_from_envs(char** nullble_env_paths,char* target_file);
 char** parser(char* str,char* delim);
 int free_double_str_ptr(char** env_paths);

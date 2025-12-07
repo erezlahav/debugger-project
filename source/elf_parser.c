@@ -13,7 +13,7 @@ extern debugee_process process_to_debug;
 
 Elf64_Ehdr* get_elf_header(FILE* elf_file_ptr){
     Elf64_Ehdr* elf_header = malloc(sizeof(Elf64_Ehdr));
-    fseek(elf_file_ptr,0,SEEK_SET);
+    int res = fseek(elf_file_ptr,0,SEEK_SET);
     size_t bytes_read = fread(elf_header,sizeof(Elf64_Ehdr), 1, elf_file_ptr);
     fseek(elf_file_ptr,0,SEEK_SET);
     return elf_header;
@@ -51,6 +51,38 @@ Elf64_Phdr* get_text_segment_ph(Elf64_Phdr* program_headers_array,int num_of_pro
     return NULL;
 }
 
+
+///////changing!!!!!
+
+Elf64_Shdr* get_section_header_by_name(Elf64_Shdr* section_headers_arr,uint16_t number_of_section_headers, char* section_headers_names,char* sh_name){
+    for(int i = 0; i < number_of_section_headers;i++){
+        if(strcmp((char*)(section_headers_names + section_headers_arr[i].sh_name),sh_name) == 0){
+            return &section_headers_arr[i];
+        }
+    }
+    return NULL;
+}
+
+
+unsigned char* get_bytes_array_code_from_symbol(symbol* symbol,FILE* elf_file_ptr){
+    Elf64_Ehdr* elf_header = get_elf_header(elf_file_ptr);
+    Elf64_Shdr* section_headers_arr = get_section_headers(elf_header,elf_file_ptr);
+    Elf64_Shdr* shstrtab_section_header = find_shstrtab_in_section_headers(section_headers_arr,elf_header);
+    char* section_headers_names = get_section_headers_names(shstrtab_section_header,elf_file_ptr);
+    Elf64_Shdr* text_section_header = get_section_header_by_name(section_headers_arr,elf_header->e_shnum,section_headers_names,".text");
+    if(text_section_header == NULL){return NULL;}
+
+    Elf64_Off text_section_offset = text_section_header->sh_offset;
+    long symbol_adress = symbol->adress;
+    long text_section_rel_sym_adress = symbol_adress;
+    text_section_rel_sym_adress -= process_to_debug.text_segment_offset_va;
+    printf("%lx\n",text_section_rel_sym_adress);
+    printf("%lx\n",text_section_offset);
+
+}
+
+
+/////end of changing 
 
 long get_virtual_addr_from_text_segment_ph(Elf64_Phdr* text_segment_ph){
     return (long)text_segment_ph->p_vaddr;
@@ -236,12 +268,12 @@ symbol* find_symbol_by_name(symbols_array* array_of_symbols,char* name){
 
 
 void update_adressing_of_symtab_symbols(symbols_array* array_of_symbols,long base_binary){
-    if(process_to_debug.PIE){
-        for(int i = 0; i < array_of_symbols->number_of_symbols;i++){
-            if(array_of_symbols->symbols[i].table_type == symtab){
-                array_of_symbols->symbols[i].adress -= process_to_debug.text_segment_offset_va;
-                array_of_symbols->symbols[i].adress += base_binary;
-            }
+    printf("text_segment_offset_va : %lx\n",process_to_debug.text_segment_offset_va);
+    printf("base_binary : %lx\n",base_binary);
+    for(int i = 0; i < array_of_symbols->number_of_symbols;i++){
+        if(array_of_symbols->symbols[i].table_type == symtab){
+            array_of_symbols->symbols[i].adress -= process_to_debug.text_segment_offset_va;
+            array_of_symbols->symbols[i].adress += base_binary;
         }
     }
 }

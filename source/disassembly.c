@@ -7,6 +7,7 @@
 #include "debug.h"
 #include "elf_parser.h"
 #include "breakpoint.h"
+#include "utils.h"
 extern debugee_process process_to_debug;
 
 void live_disassemble_symbol(symbol* symbol){
@@ -37,6 +38,15 @@ void live_disassemble_symbol(symbol* symbol){
 
 void static_disassemble_symbol(symbol* symbol){
     printf("in static_disassemble_symbol\n");
+    FILE* elf_target_ptr = fopen(process_to_debug.elf_path,"rb");
+    if(elf_target_ptr == NULL){
+        printf("fopen failed!\n");
+        exit(0);
+    }
+    else{
+        printf("success\n");
+    }
+    unsigned char* bytes_array = get_bytes_array_code_from_symbol(symbol,elf_target_ptr);
 }
 
 
