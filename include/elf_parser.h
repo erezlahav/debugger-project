@@ -18,7 +18,7 @@ typedef enum{
 }symbol_type;
 
 typedef struct{
-    uint64_t adress;
+    long adress;
     char* name;
     uint64_t size;
     symbol_type type;
