@@ -18,11 +18,15 @@ extern debugee_process process_to_debug;
 const command_table table_commands[] = {
     {"info",info,"help displaying data like functions/registers and more..."},
     {"disass",disassemble_function,"print disassembly representation of the function"},
+    {"disassemble",disassemble_function,"print disassembly representation of the function"},
     {"break",set_breakpoint,"set breakpoint in adress you choose"},
     {"exit",exit_debugger,"exit from debugger"},
     {"c",continue_proc,"continue the execution of the process"},
+    {"continue",continue_proc,"continue the execution of the process"},
     {"r",run_process,"run the current process after breaking on stop signal before main"},
+    {"run",run_process,"run the current process after breaking on stop signal before main"},
     {"si",step_into,"step into instruction(executes one instruction)"},
+    {"ni",next_instruction,"step over instruction(going over functions and not into)"},
     {NULL,NULL,NULL}
 };
 
@@ -67,7 +71,6 @@ int handle_stopped_process(pid_t pid, int status){
     process_to_debug.proc_state = STOPPED;
     int signal = WSTOPSIG(status);
     if(signal == SIGTRAP){
-        printf("breakpoint accured! ");
         struct user_regs_struct regs;
         get_registers(pid, &regs);
         breakpoint* bp = get_breakpoint_by_addr(regs.rip-1); //null if no breakpoint match

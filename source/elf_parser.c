@@ -271,8 +271,6 @@ symbol* find_symbol_by_name(symbols_array* array_of_symbols,char* name){
 
 
 void update_adressing_of_symtab_symbols(symbols_array* array_of_symbols,long base_binary){
-    printf("text_segment_offset_va : %lx\n",process_to_debug.text_segment_offset_va);
-    printf("base_binary : %lx\n",base_binary);
     for(int i = 0; i < array_of_symbols->number_of_symbols;i++){
         if(array_of_symbols->symbols[i].table_type == symtab){
             array_of_symbols->symbols[i].adress -= process_to_debug.text_segment_offset_va;

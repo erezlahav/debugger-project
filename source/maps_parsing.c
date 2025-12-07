@@ -15,7 +15,6 @@ void parse_lines_of_maps(char** lines){ //parsing the lines of maps file and put
     char** two_adresses;
     long start_addr;
     long end_addr;
-    printf("%s\n",process_to_debug.elf_path);
     for(int i = 0;lines[i] != NULL;i++){
         parts_of_line = parser(lines[i]," "); //0 index : adress , 1 index : permissions, 2 index : xxxx, 3 index : date of mapping, 4 index : xxxx, 5 index : name of segment
         char* segment_name;

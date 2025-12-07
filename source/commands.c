@@ -5,6 +5,7 @@
 #include <sys/user.h>
 #include <sys/wait.h>
 #include <errno.h>
+
 #include "commands.h"
 #include "debug.h"
 #include "breakpoint.h"
@@ -55,8 +56,6 @@ int continue_proc(int argc,char** argv){
 }
 
 int disassemble_function(int argc,char** argv){
-    printf("in disassemble_function\n");
-    printf("symbol name : %s\n",argv[1]);
     symbol* input_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,argv[1]);
     if(input_symbol == NULL){
         printf("symbol not exist\n");
@@ -79,6 +78,37 @@ int step_into(int argc,char** argv){
     check_and_remove_former_bp(process_to_debug.pid);
     ptrace(PTRACE_SINGLESTEP,process_to_debug.pid,NULL,0);
 }
+
+
+int next_instruction(int argc,char** argv){
+    if(process_to_debug.proc_state == LOADED || process_to_debug.proc_state == NOT_LOADED){
+        printf("process is not running yet\n");
+        return 0;
+    }
+    struct user_regs_struct regs;
+    get_registers(process_to_debug.pid, &regs);
+    unsigned char next_opcodes[16];
+
+    for(int i = 0; i < sizeof(next_opcodes); i += sizeof(long)) {
+        long tmp = ptrace(PTRACE_PEEKDATA, process_to_debug.pid, regs.rip + i, NULL);
+        int copy_size = sizeof(long);
+        if(i + copy_size > sizeof(next_opcodes)){
+            copy_size = sizeof(next_opcodes) - i;
+        }
+        memcpy(next_opcodes + i, &tmp, copy_size);
+    }
+    //get 16 or less bytes from rip(16 bytes is the max instruction length in 0x86 64)
+
+    if( !is_call_instruction(*(long*)next_opcodes) ){
+        step_into(argc,argv);
+    }
+    else{ //call instruction in next opcode
+        int call_instruction_len = get_length_of_instruction(next_opcodes,sizeof(next_opcodes),regs.rip);
+        
+
+    }
+}
+
 int exit_debugger(int argc,char** argv){
     printf("in exit\n");
     exit(0);
