@@ -9,6 +9,39 @@
 #include "debug.h"
 extern debugee_process process_to_debug;
 
+
+
+int set_hardware_breakpoint(long adress){
+    unsigned long dr0_reg = ptrace(PTRACE_PEEKUSER, process_to_debug.pid, 8*0, 0);
+    unsigned long dr1_reg = ptrace(PTRACE_PEEKUSER, process_to_debug.pid, 8*1, 0);
+    unsigned long dr2_reg = ptrace(PTRACE_PEEKUSER, process_to_debug.pid, 8*2, 0);
+    unsigned long dr3_reg = ptrace(PTRACE_PEEKUSER, process_to_debug.pid, 8*3, 0);
+    unsigned long dr7_reg = ptrace(PTRACE_PEEKUSER,process_to_debug.pid,8*7,0);
+    int avalieble_index = return_first_avalieble_hbp_register(dr7_reg);
+    if(avalieble_index == -1){
+        return 0;
+    }
+    ptrace(PTRACE_POKEUSER,process_to_debug.pid,8 * avalieble_index,adress);
+    int dr7_mask = (1 << avalieble_index*2);
+    dr7_reg |= dr7_mask;
+    ptrace(PTRACE_POKEUSER,process_to_debug.pid,8*7,dr7_reg);
+    return 1;
+}
+
+
+int return_first_avalieble_hbp_register(unsigned long dr7_reg){ //0 is dr0 , 1 is dr1 ....
+    for(int i = 0; i < 4;i++){
+        int current_local_dr = (dr7_reg >> i*2) & 0x1; 
+        int current_global_dr = (dr7_reg >> (i*2+1)) & 0x1;
+        if(current_local_dr == 0 && current_global_dr == 0){
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+
 int ptrace_breakpoint(breakpoint* bp){
     if(process_to_debug.proc_state == NOT_LOADED){
         return 0;

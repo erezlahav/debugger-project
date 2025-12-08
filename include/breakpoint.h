@@ -22,6 +22,9 @@ typedef struct{
     int number_of_breakpoints;
 }breakpoints_array;
 
+
+int set_hardware_breakpoint(long adress);
+int return_first_avalieble_hbp_register(unsigned long dr7_reg);
 int ptrace_breakpoint(breakpoint* bp);
 int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
 int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);

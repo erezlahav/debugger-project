@@ -76,6 +76,7 @@ int step_into(int argc,char** argv){
         return 0;
     }
     check_and_remove_former_bp(process_to_debug.pid);
+    process_to_debug.proc_state = RUNNING;
     ptrace(PTRACE_SINGLESTEP,process_to_debug.pid,NULL,0);
 }
 
@@ -104,8 +105,7 @@ int next_instruction(int argc,char** argv){
     }
     else{ //call instruction in next opcode
         int call_instruction_len = get_length_of_instruction(next_opcodes,sizeof(next_opcodes),regs.rip);
-        
-
+        set_hardware_breakpoint(regs.rip + call_instruction_len);
     }
 }
 

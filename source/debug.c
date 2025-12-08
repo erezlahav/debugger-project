@@ -67,16 +67,18 @@ int handle_command(char* command){
 }
 
 int handle_stopped_process(pid_t pid, int status){
-    printf("process stopped!\n");
+    printf("process stopped! , ");
+    struct user_regs_struct regs;
+    get_registers(pid, &regs);
+    printf("in adress : %llx\n",regs.rip-1);
     process_to_debug.proc_state = STOPPED;
     int signal = WSTOPSIG(status);
     if(signal == SIGTRAP){
-        struct user_regs_struct regs;
-        get_registers(pid, &regs);
         breakpoint* bp = get_breakpoint_by_addr(regs.rip-1); //null if no breakpoint match
         if(bp != NULL){
             print_breakpoint(bp);
         }
+
     }
 }
 
