@@ -15,6 +15,10 @@
 
 extern debugee_process process_to_debug;
 int run_process(int argc,char** argv){
+    if(process_to_debug.proc_state != NOT_LOADED){
+        printf("process is already loaded\n");
+        return 0;
+    }
     process_to_debug.pid = fork();
     if(process_to_debug.pid == 0){
         ptrace(PTRACE_TRACEME,process_to_debug.pid,NULL,NULL);
@@ -35,6 +39,7 @@ int run_process(int argc,char** argv){
         load_proc_info(process_to_debug.pid);
         update_adressing_of_symtab_symbols(process_to_debug.array_of_symbols, process_to_debug.array_of_regions.arr[0].start);
         resolve_breakpoints();
+        print_dr();
         ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
         process_to_debug.proc_state = RUNNING;
     }

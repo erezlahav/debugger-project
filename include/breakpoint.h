@@ -8,6 +8,11 @@ typedef enum{
     FAILED
 }bp_state;
 
+typedef enum{
+    HARDWARE,
+    SOFTWARE
+}bp_type;
+
 typedef struct{
     int index;
     long abs_adress;
@@ -15,6 +20,7 @@ typedef struct{
     symbol* bp_symbol; //NULL if NOT exists
     long offset_from_symbol; //0 if not symbol and 0 if no offset
     bp_state state;
+    bp_type type;
 }breakpoint;
 
 typedef struct{
@@ -23,22 +29,23 @@ typedef struct{
 }breakpoints_array;
 
 
-int set_hardware_breakpoint(long adress);
-int return_first_avalieble_hbp_register(unsigned long dr7_reg);
+
+
 int ptrace_breakpoint(breakpoint* bp);
-int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
-int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
+int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type);
+int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type);
 breakpoint* get_breakpoint_by_addr(long adress);
-int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress);
+int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type);
 int resolve_breakpoints();
 void print_breakpoint(breakpoint* bp);
 void print_breakpoints();
 int set_breakpoint(int argc,char** argv);
-int break_symbol(char* symbol_name);
-int handle_star_breakpoint(char** argv);
-int set_break_raw_adress(char* addr_to_break);
-int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol);
-int set_break_in_star_symbol(char* break_argument);
+int cmd_hardware_breakpoint(int argc,char** argv);
+int break_symbol(char* symbol_name,bp_type type);
+int handle_star_breakpoint(char** argv,bp_type type);
+int set_break_raw_adress(char* addr_to_break,bp_type type);
+int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol,bp_type type);
+int set_break_in_star_symbol(char* break_argument,bp_type type);
 char* get_relitive_symbol_name_and_plus_index(char* break_argument,int* plus_index);
 long string_addr_to_long(char* string_adrr);
 int check_and_remove_former_bp(pid_t pid);

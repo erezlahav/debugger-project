@@ -20,6 +20,7 @@ const command_table table_commands[] = {
     {"disass",disassemble_function,"print disassembly representation of the function"},
     {"disassemble",disassemble_function,"print disassembly representation of the function"},
     {"break",set_breakpoint,"set breakpoint in adress you choose"},
+    {"hbreak",cmd_hardware_breakpoint,"set breakpoint in adress you choose"},
     {"exit",exit_debugger,"exit from debugger"},
     {"c",continue_proc,"continue the execution of the process"},
     {"continue",continue_proc,"continue the execution of the process"},
@@ -67,6 +68,7 @@ int handle_command(char* command){
 }
 
 int handle_stopped_process(pid_t pid, int status){
+    print_dr();
     printf("process stopped! , ");
     struct user_regs_struct regs;
     get_registers(pid, &regs);
@@ -78,6 +80,7 @@ int handle_stopped_process(pid_t pid, int status){
         if(bp != NULL){
             print_breakpoint(bp);
         }
+        print_dr();
 
     }
 }

@@ -7,38 +7,10 @@
 #include "breakpoint.h"
 #include "elf_parser.h"
 #include "debug.h"
+#include "hw_breakpoints.h"
 extern debugee_process process_to_debug;
 
 
-
-int set_hardware_breakpoint(long adress){
-    unsigned long dr0_reg = ptrace(PTRACE_PEEKUSER, process_to_debug.pid, 8*0, 0);
-    unsigned long dr1_reg = ptrace(PTRACE_PEEKUSER, process_to_debug.pid, 8*1, 0);
-    unsigned long dr2_reg = ptrace(PTRACE_PEEKUSER, process_to_debug.pid, 8*2, 0);
-    unsigned long dr3_reg = ptrace(PTRACE_PEEKUSER, process_to_debug.pid, 8*3, 0);
-    unsigned long dr7_reg = ptrace(PTRACE_PEEKUSER,process_to_debug.pid,8*7,0);
-    int avalieble_index = return_first_avalieble_hbp_register(dr7_reg);
-    if(avalieble_index == -1){
-        return 0;
-    }
-    ptrace(PTRACE_POKEUSER,process_to_debug.pid,8 * avalieble_index,adress);
-    int dr7_mask = (1 << avalieble_index*2);
-    dr7_reg |= dr7_mask;
-    ptrace(PTRACE_POKEUSER,process_to_debug.pid,8*7,dr7_reg);
-    return 1;
-}
-
-
-int return_first_avalieble_hbp_register(unsigned long dr7_reg){ //0 is dr0 , 1 is dr1 ....
-    for(int i = 0; i < 4;i++){
-        int current_local_dr = (dr7_reg >> i*2) & 0x1; 
-        int current_global_dr = (dr7_reg >> (i*2+1)) & 0x1;
-        if(current_local_dr == 0 && current_global_dr == 0){
-            return i;
-        }
-    }
-    return -1;
-}
 
 
 
@@ -49,18 +21,25 @@ int ptrace_breakpoint(breakpoint* bp){
     if(bp->state != RESOLVED){
         return 0;
     }
-    errno = 0;
-    long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,bp->abs_adress,NULL);
-    if (res == -1 && errno != 0) {
-        printf("ptrace failed: %s\n", strerror(errno));
-    } 
-    bp->orig_data = res;
-    long new_instruction_with_cc = (res & 0xffffffffffffff00) | 0xcc;
-    ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->abs_adress,new_instruction_with_cc);
+    printf("breakpoint adress : %lx\n",bp->abs_adress);
+    if(bp->type == HARDWARE){
+        set_hardware_breakpoint(bp->abs_adress);
+    }
+    else if(bp->type == SOFTWARE){
+        errno = 0;
+        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,bp->abs_adress,NULL);
+        if (res == -1 && errno != 0) {
+            printf("ptrace failed: %s\n", strerror(errno));
+        } 
+        bp->orig_data = res;
+        long new_instruction_with_cc = (res & 0xffffffffffffff00) | 0xcc;
+        ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->abs_adress,new_instruction_with_cc);
+    }
 }
 
 
-int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress){
+int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type){
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].type = type;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].bp_symbol = bp_symbol;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].offset_from_symbol = offset_from_symbol;
@@ -69,10 +48,11 @@ int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs
     process_to_debug.array_of_breakpoints.number_of_breakpoints++;
 }
 
-int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress){
+int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type){
     if(process_to_debug.proc_state == NOT_LOADED){
         return 0;
     }
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].type = type;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].abs_adress = abs_adress;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].offset_from_symbol = offset_from_symbol;
@@ -99,12 +79,12 @@ breakpoint* get_breakpoint_by_addr(long adress){
     return NULL; //if breakpoint not exists
 }
 
-int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress){
+int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type){
     if(process_to_debug.proc_state == NOT_LOADED){
-        create_pending_breakpoint(bp_symbol, offset_from_symbol, abs_adress);
+        create_pending_breakpoint(bp_symbol, offset_from_symbol, abs_adress,type);
     }
     else{
-        create_resolved_breakpoint(bp_symbol, offset_from_symbol, abs_adress);
+        create_resolved_breakpoint(bp_symbol, offset_from_symbol, abs_adress,type);
     }
 }
 
@@ -143,16 +123,30 @@ int set_breakpoint(int argc,char** argv){
     }
 
     if(argv[1][0] != '*'){ //no * in argv[1]
-        break_symbol(argv[1]);
+        break_symbol(argv[1],SOFTWARE);
     }
     else{ //* in argv, means its raw adrress or relitive symbol
-        handle_star_breakpoint(argv);
+        handle_star_breakpoint(argv,SOFTWARE);
     }
     
 }
 
 
-int break_symbol(char* symbol_name){
+int cmd_hardware_breakpoint(int argc,char** argv){
+    if(argc != 2){
+        printf("breakpoint syntax incorrect\n");
+        return 0;
+    }
+
+    if(argv[1][0] != '*'){ //no * in argv[1]
+        break_symbol(argv[1],HARDWARE);
+    }
+    else{ //* in argv, means its raw adrress or relitive symbol
+        handle_star_breakpoint(argv,HARDWARE);
+    }
+}
+
+int break_symbol(char* symbol_name,bp_type type){
     symbol* target_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,symbol_name);
     if(target_symbol == NULL){
         printf("symbol not found\n");
@@ -160,48 +154,48 @@ int break_symbol(char* symbol_name){
     }
     else{
         long adress_of_symbol = target_symbol->adress;
-        create_breakpoint(target_symbol,0,adress_of_symbol); //0 in offset becuase this is a condition of only symbol no offset
+        create_breakpoint(target_symbol,0,adress_of_symbol, type); //0 in offset becuase this is a condition of only symbol no offset
     }
 }
 
 
 
 
-int handle_star_breakpoint(char** argv){
+int handle_star_breakpoint(char** argv,bp_type type){
     char* break_arg = argv[1];
     if(break_arg[0] != '*'){return 0;};
 
     break_arg++;
     printf("%s\n",break_arg);
     if(strncmp(break_arg,"0x",2) == 0 || strncmp(break_arg,"0X",2) == 0){ //break adress case like b *0x007fffc120
-        set_break_raw_adress(break_arg);
+        set_break_raw_adress(break_arg,type);
     }
 
     else{
-        set_break_in_star_symbol(break_arg);
+        set_break_in_star_symbol(break_arg,type);
     }
 }
 
-int set_break_raw_adress(char* addr_to_break){
+int set_break_raw_adress(char* addr_to_break,bp_type type){
     long break_adress = string_addr_to_long(addr_to_break);
-    create_breakpoint(NULL,0,break_adress); //NULL and 0 becuase this is a condition of only raw adress
+    create_breakpoint(NULL,0,break_adress,type); //NULL and 0 becuase this is a condition of only raw adress
 }
 
 
-int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol){
+int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol,bp_type type){
     symbol* target_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,symbol_name);
     if(target_symbol == NULL){
         printf("symbol not found!\n");
     }
     else{
         long adress_of_relitive_symbol = target_symbol->adress;
-        create_breakpoint(target_symbol,offset_from_symbol,adress_of_relitive_symbol+offset_from_symbol); //absolute adress still unknown due to PIE and will be calculated after
+        create_breakpoint(target_symbol,offset_from_symbol,adress_of_relitive_symbol+offset_from_symbol,type); //absolute adress still unknown due to PIE and will be calculated after
     }
     return 0;
 }
 
 
-int set_break_in_star_symbol(char* break_argument){
+int set_break_in_star_symbol(char* break_argument,bp_type type){
     int plus_index;
     char* symbol_name = get_relitive_symbol_name_and_plus_index(break_argument,&plus_index);
     long relitive_symbol_offset = 0;
@@ -215,11 +209,11 @@ int set_break_in_star_symbol(char* break_argument){
             relitive_symbol_offset = atoi(chars_after_plus); //offset in decimal
         }
 
-        break_in_relitive_symbol(symbol_name,relitive_symbol_offset);
+        break_in_relitive_symbol(symbol_name,relitive_symbol_offset,type);
 
     }
     else{
-        break_symbol(symbol_name); //only symbol
+        break_symbol(symbol_name,type); //only symbol
     }
     
 }
