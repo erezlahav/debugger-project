@@ -22,6 +22,7 @@ const command_table table_commands[] = {
     {"disassemble",disassemble_function,"print disassembly representation of the function"},
     {"break",cmd_software_breakpoint,"set breakpoint in adress you choose"},
     {"hbreak",cmd_hardware_breakpoint,"set breakpoint in adress you choose"},
+    {"delete",cmd_delete,"deletes a breakpoint"},
     {"exit",exit_debugger,"exit from debugger"},
     {"c",continue_proc,"continue the execution of the process"},
     {"continue",continue_proc,"continue the execution of the process"},

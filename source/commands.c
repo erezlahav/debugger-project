@@ -118,6 +118,30 @@ int next_instruction(int argc,char** argv){
     }
 }
 
+
+int cmd_delete(int argc,char** argv){
+    if(argc == 2){
+        int bp_index = atoi(argv[1]);
+        if(bp_index == 0){
+            if(strlen(argv[1]) == 1 && argv[1][0] == '0'){ //that means user did delete 0
+                if(!remove_breakpoint_from_bp_arr(0)){
+                    printf("no breakpoint number 0\n");
+                }
+            }            
+        }
+        else{
+            if(!remove_breakpoint_from_bp_arr(bp_index)){
+                printf("no breakpoint number %d\n",bp_index);
+            }
+        }
+
+    }
+}
+
+
+
+
+
 int exit_debugger(int argc,char** argv){
     printf("in exit\n");
     exit(0);

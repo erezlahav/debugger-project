@@ -232,11 +232,11 @@ long string_addr_to_long(char* string_adrr){
     return strtol(string_adrr,NULL,16);
 }
 
-int remove_breakpoints_from_bp_arr(breakpoint* bp){
+int remove_breakpoint_from_bp_arr(int index){
     int next_aval_index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     if(next_aval_index == 0){return 0;}
 
-    for(int i = bp->index; i < next_aval_index-1;i++){
+    for(int i = index; i < next_aval_index-1;i++){
         process_to_debug.array_of_breakpoints.arr_breakpoints[i] = process_to_debug.array_of_breakpoints.arr_breakpoints[i+1];
     }
     process_to_debug.array_of_breakpoints.number_of_breakpoints--;
