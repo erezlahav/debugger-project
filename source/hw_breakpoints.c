@@ -16,10 +16,10 @@ int cmd_hardware_breakpoint(int argc,char** argv){
     }
 
     if(argv[1][0] != '*'){ //no * in argv[1]
-        break_symbol(argv[1],HARDWARE);
+        break_symbol(argv[1],HARDWARE | PERM);
     }
     else{ //* in argv, means its raw adrress or relitive symbol
-        handle_star_breakpoint(argv,HARDWARE);
+        handle_star_breakpoint(argv,HARDWARE | PERM);
     }
 }
 

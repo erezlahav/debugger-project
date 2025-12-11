@@ -22,10 +22,10 @@ int ptrace_breakpoint(breakpoint* bp){
         return 0;
     }
     printf("breakpoint adress : %lx\n",bp->abs_adress);
-    if(bp->type == HARDWARE){
+    if((bp->type & HARDWARE) ==  HARDWARE){
         set_hardware_breakpoint(bp->abs_adress);
     }
-    else if(bp->type == SOFTWARE){
+    else if((bp->type & SOFTWARE) == SOFTWARE){
         errno = 0;
         long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,bp->abs_adress,NULL);
         if (res == -1 && errno != 0) {
@@ -38,7 +38,7 @@ int ptrace_breakpoint(breakpoint* bp){
 }
 
 
-int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type){
+int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,unsigned char type){
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].type = type;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
@@ -49,7 +49,7 @@ int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs
     process_to_debug.array_of_breakpoints.number_of_breakpoints++;
 }
 
-int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type){
+int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,unsigned char type){
     if(process_to_debug.proc_state == NOT_LOADED){
         return 0;
     }
@@ -81,7 +81,7 @@ breakpoint* get_breakpoint_by_addr(long adress){
     return NULL; //if breakpoint not exists
 }
 
-int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type){
+int create_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,unsigned char type){
     if(process_to_debug.proc_state == NOT_LOADED){
         create_pending_breakpoint(bp_symbol, offset_from_symbol, abs_adress,type);
     }
@@ -125,17 +125,17 @@ int cmd_software_breakpoint(int argc,char** argv){
     }
 
     if(argv[1][0] != '*'){ //no * in argv[1]
-        break_symbol(argv[1],SOFTWARE);
+        break_symbol(argv[1],SOFTWARE | PERM);
     }
     else{ //* in argv, means its raw adrress or relitive symbol
-        handle_star_breakpoint(argv,SOFTWARE);
+        handle_star_breakpoint(argv,SOFTWARE | PERM);
     }
     
 }
 
 
 
-int break_symbol(char* symbol_name,bp_type type){
+int break_symbol(char* symbol_name,unsigned char type){
     symbol* target_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,symbol_name);
     if(target_symbol == NULL){
         printf("symbol not found\n");
@@ -150,7 +150,7 @@ int break_symbol(char* symbol_name,bp_type type){
 
 
 
-int handle_star_breakpoint(char** argv,bp_type type){
+int handle_star_breakpoint(char** argv,unsigned char type){
     char* break_arg = argv[1];
     if(break_arg[0] != '*'){return 0;};
 
@@ -165,13 +165,13 @@ int handle_star_breakpoint(char** argv,bp_type type){
     }
 }
 
-int set_break_raw_adress(char* addr_to_break,bp_type type){
+int set_break_raw_adress(char* addr_to_break,unsigned char type){
     long break_adress = string_addr_to_long(addr_to_break);
     create_breakpoint(NULL,0,break_adress,type); //NULL and 0 becuase this is a condition of only raw adress
 }
 
 
-int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol,bp_type type){
+int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol,unsigned char type){
     symbol* target_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,symbol_name);
     if(target_symbol == NULL){
         printf("symbol not found!\n");
@@ -184,7 +184,7 @@ int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol,bp_type t
 }
 
 
-int set_break_in_star_symbol(char* break_argument,bp_type type){
+int set_break_in_star_symbol(char* break_argument,unsigned char type){
     int plus_index;
     char* symbol_name = get_relitive_symbol_name_and_plus_index(break_argument,&plus_index);
     long relitive_symbol_offset = 0;
