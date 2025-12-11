@@ -12,6 +12,7 @@
 #include "info_commands.h"
 #include "commands.h"
 #include "breakpoint.h"
+#include "hw_breakpoints.h"
 
 extern debugee_process process_to_debug;
 
@@ -19,7 +20,7 @@ const command_table table_commands[] = {
     {"info",info,"help displaying data like functions/registers and more..."},
     {"disass",disassemble_function,"print disassembly representation of the function"},
     {"disassemble",disassemble_function,"print disassembly representation of the function"},
-    {"break",set_breakpoint,"set breakpoint in adress you choose"},
+    {"break",cmd_software_breakpoint,"set breakpoint in adress you choose"},
     {"hbreak",cmd_hardware_breakpoint,"set breakpoint in adress you choose"},
     {"exit",exit_debugger,"exit from debugger"},
     {"c",continue_proc,"continue the execution of the process"},

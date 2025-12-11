@@ -39,6 +39,7 @@ int ptrace_breakpoint(breakpoint* bp){
 
 
 int create_pending_breakpoint(symbol* bp_symbol,long offset_from_symbol,long abs_adress,bp_type type){
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].type = type;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].bp_symbol = bp_symbol;
@@ -52,6 +53,7 @@ int create_resolved_breakpoint(symbol* bp_symbol,long offset_from_symbol,long ab
     if(process_to_debug.proc_state == NOT_LOADED){
         return 0;
     }
+    process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].type = type;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
     process_to_debug.array_of_breakpoints.arr_breakpoints[process_to_debug.array_of_breakpoints.number_of_breakpoints].abs_adress = abs_adress;
@@ -116,7 +118,7 @@ void print_breakpoints(){
 }
 
 
-int set_breakpoint(int argc,char** argv){
+int cmd_software_breakpoint(int argc,char** argv){
     if(argc != 2){
         printf("breakpoint syntax incorrect\n");
         return 0;
@@ -132,19 +134,6 @@ int set_breakpoint(int argc,char** argv){
 }
 
 
-int cmd_hardware_breakpoint(int argc,char** argv){
-    if(argc != 2){
-        printf("breakpoint syntax incorrect\n");
-        return 0;
-    }
-
-    if(argv[1][0] != '*'){ //no * in argv[1]
-        break_symbol(argv[1],HARDWARE);
-    }
-    else{ //* in argv, means its raw adrress or relitive symbol
-        handle_star_breakpoint(argv,HARDWARE);
-    }
-}
 
 int break_symbol(char* symbol_name,bp_type type){
     symbol* target_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,symbol_name);
@@ -243,17 +232,36 @@ long string_addr_to_long(char* string_adrr){
     return strtol(string_adrr,NULL,16);
 }
 
+int remove_breakpoints_from_bp_arr(breakpoint* bp){
+    int next_aval_index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
+    if(next_aval_index == 0){return 0;}
 
+    for(int i = bp->index; i < next_aval_index-1;i++){
+        process_to_debug.array_of_breakpoints.arr_breakpoints[i] = process_to_debug.array_of_breakpoints.arr_breakpoints[i+1];
+    }
+    process_to_debug.array_of_breakpoints.number_of_breakpoints--;
+    return 1;
+}
 
-int check_and_remove_former_bp(pid_t pid){
+int step_over_bp(pid_t pid){
     struct user_regs_struct regs;
     get_registers(process_to_debug.pid, &regs);
     breakpoint* bp = get_breakpoint_by_addr(regs.rip-1);
     if(bp != NULL){
-        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,regs.rip-1,NULL); //read the former instruction to check if there is a 0xCC byte
+        if(regs.rip-1 != bp->abs_adress){
+            return 0;
+        }
+        long current_opcodes = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,regs.rip-1,NULL); //read the former instruction to check if there is a 0xCC byte
         ptrace(PTRACE_POKEDATA,process_to_debug.pid,regs.rip-1,bp->orig_data);
         regs.rip -= 1;
         set_registers(process_to_debug.pid,&regs);
+
+        ptrace(PTRACE_SINGLESTEP,process_to_debug.pid,NULL,0);
+        int status;
+        waitpid(process_to_debug.pid, &status,0);
+        if(WIFSTOPPED(status)){
+            ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->abs_adress,current_opcodes);
+        }
         return 1;
     }
     return 0;

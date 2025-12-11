@@ -1,6 +1,6 @@
 #pragma once
 
-
+int cmd_hardware_breakpoint(int argc,char** argv);
 int set_hardware_breakpoint(long adress);
 int clear_hardware_breakpoint(int index);
 void print_dr();

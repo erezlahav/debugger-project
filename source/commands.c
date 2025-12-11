@@ -52,7 +52,7 @@ int continue_proc(int argc,char** argv){
         return 0;
     }
     if(process_to_debug.pid != -1){
-        check_and_remove_former_bp(process_to_debug.pid);
+        step_over_bp(process_to_debug.pid);
         ptrace(PTRACE_CONT,process_to_debug.pid,NULL,0);
         process_to_debug.proc_state = RUNNING;
         return 1;
@@ -80,7 +80,7 @@ int step_into(int argc,char** argv){
         printf("process is not running yet\n");
         return 0;
     }
-    check_and_remove_former_bp(process_to_debug.pid);
+    step_over_bp(process_to_debug.pid);
     process_to_debug.proc_state = RUNNING;
     ptrace(PTRACE_SINGLESTEP,process_to_debug.pid,NULL,0);
 }
@@ -110,7 +110,11 @@ int next_instruction(int argc,char** argv){
     }
     else{ //call instruction in next opcode
         int call_instruction_len = get_length_of_instruction(next_opcodes,sizeof(next_opcodes),regs.rip);
-        set_hardware_breakpoint(regs.rip + call_instruction_len);
+        int res = set_hardware_breakpoint(regs.rip + call_instruction_len);
+        if(!res){ //fail to put hw breakpoint
+            printf("fail hw breakpoint\n");
+            
+        }
     }
 }
 

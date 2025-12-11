@@ -4,11 +4,24 @@
 
 #include "debug.h"
 #include "hw_breakpoints.h"
+#include "breakpoint.h"
 
 
 extern debugee_process process_to_debug;
 
+int cmd_hardware_breakpoint(int argc,char** argv){
+    if(argc != 2){
+        printf("breakpoint syntax incorrect\n");
+        return 0;
+    }
 
+    if(argv[1][0] != '*'){ //no * in argv[1]
+        break_symbol(argv[1],HARDWARE);
+    }
+    else{ //* in argv, means its raw adrress or relitive symbol
+        handle_star_breakpoint(argv,HARDWARE);
+    }
+}
 
 int set_hardware_breakpoint(long adress){
     unsigned long dr7_reg = ptrace(PTRACE_PEEKUSER,process_to_debug.pid,8*7,0);
@@ -28,7 +41,7 @@ int set_hardware_breakpoint(long adress){
 
     res = ptrace(PTRACE_PEEKUSER,process_to_debug.pid,8*7,0);
     res = ptrace(PTRACE_PEEKUSER,process_to_debug.pid,8*0,0);
-    return 1;
+    return 0;
 }
 
 
