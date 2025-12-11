@@ -124,17 +124,16 @@ int cmd_delete(int argc,char** argv){
         int bp_index = atoi(argv[1]);
         if(bp_index == 0){
             if(strlen(argv[1]) == 1 && argv[1][0] == '0'){ //that means user did delete 0
-                if(!remove_breakpoint_from_bp_arr(0)){
+                if(!delete_breakpoint(bp_index)){
                     printf("no breakpoint number 0\n");
                 }
             }            
         }
         else{
-            if(!remove_breakpoint_from_bp_arr(bp_index)){
+            if(!delete_breakpoint(bp_index)){
                 printf("no breakpoint number %d\n",bp_index);
             }
         }
-
     }
 }
 

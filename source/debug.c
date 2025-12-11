@@ -70,7 +70,6 @@ int handle_command(char* command){
 }
 
 int handle_stopped_process(pid_t pid, int status){
-    print_dr();
     printf("process stopped! , ");
     struct user_regs_struct regs;
     get_registers(pid, &regs);
@@ -82,7 +81,6 @@ int handle_stopped_process(pid_t pid, int status){
         if(bp != NULL){
             print_breakpoint(bp);
         }
-        print_dr();
 
     }
 }

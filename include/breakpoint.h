@@ -47,5 +47,6 @@ int break_in_relitive_symbol(char* symbol_name,long offset_from_symbol,bp_type t
 int set_break_in_star_symbol(char* break_argument,bp_type type);
 char* get_relitive_symbol_name_and_plus_index(char* break_argument,int* plus_index);
 long string_addr_to_long(char* string_adrr);
-int remove_breakpoint_from_bp_arr(int index);
+static int remove_breakpoint_from_bp_arr(int index);
+int delete_breakpoint(int index);
 int step_over_bp(pid_t pid);

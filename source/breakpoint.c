@@ -232,14 +232,32 @@ long string_addr_to_long(char* string_adrr){
     return strtol(string_adrr,NULL,16);
 }
 
-int remove_breakpoint_from_bp_arr(int index){
+static int remove_breakpoint_from_bp_arr(int index){
     int next_aval_index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
-    if(next_aval_index == 0){return 0;}
-
     for(int i = index; i < next_aval_index-1;i++){
         process_to_debug.array_of_breakpoints.arr_breakpoints[i] = process_to_debug.array_of_breakpoints.arr_breakpoints[i+1];
+        process_to_debug.array_of_breakpoints.arr_breakpoints[i].index--;
     }
     process_to_debug.array_of_breakpoints.number_of_breakpoints--;
+    return 1;
+}
+
+
+int delete_breakpoint(int index){
+    int next_aval_index = process_to_debug.array_of_breakpoints.number_of_breakpoints;
+    if(index < 0 || index >= next_aval_index || next_aval_index == 0){
+        return 0; 
+    }
+    breakpoint target_bp = process_to_debug.array_of_breakpoints.arr_breakpoints[index];
+    if(!remove_breakpoint_from_bp_arr(index)){
+        return 0;
+    }
+    if(process_to_debug.proc_state != NOT_LOADED){
+        int res = ptrace(PTRACE_POKEDATA,process_to_debug.pid,target_bp.abs_adress,target_bp.orig_data);
+        if(res == -1){
+            return 0;
+        }
+    }
     return 1;
 }
 
