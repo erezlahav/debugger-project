@@ -39,7 +39,6 @@ int run_process(int argc,char** argv){
         load_proc_info(process_to_debug.pid);
         update_adressing_of_symtab_symbols(process_to_debug.array_of_symbols, process_to_debug.array_of_regions.arr[0].start);
         resolve_breakpoints();
-        print_dr();
         ptrace(PTRACE_CONT, process_to_debug.pid, NULL, NULL);
         process_to_debug.proc_state = RUNNING;
     }
@@ -109,12 +108,15 @@ int next_instruction(int argc,char** argv){
         step_into(argc,argv);
     }
     else{ //call instruction in next opcode
+        printf("call instruction\n");
         int call_instruction_len = get_length_of_instruction(next_opcodes,sizeof(next_opcodes),regs.rip);
         int res = set_hardware_breakpoint(regs.rip + call_instruction_len);
-        if(!res){ //fail to put hw breakpoint
+        if(!res){ //fail to put hw breakpoint, so creating a temporary internal software breakpoint
             printf("fail hw breakpoint\n");
-            
+            unsigned char type_of_bp = SOFTWARE | TEMP | INTERNAL;
+            create_breakpoint(NULL,0,regs.rip + call_instruction_len,type_of_bp);
         }
+        continue_proc(0,NULL);
     }
 }
 

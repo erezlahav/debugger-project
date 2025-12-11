@@ -73,7 +73,7 @@ int handle_stopped_process(pid_t pid, int status){
     printf("process stopped! , ");
     struct user_regs_struct regs;
     get_registers(pid, &regs);
-    printf("in adress : %llx\n",regs.rip-1);
+    printf("in adress : %llx\n",regs.rip);
     process_to_debug.proc_state = STOPPED;
     int signal = WSTOPSIG(status);
     if(signal == SIGTRAP){

@@ -113,7 +113,9 @@ void print_breakpoint(breakpoint* bp){
 void print_breakpoints(){
     for(int i = 0; i < process_to_debug.array_of_breakpoints.number_of_breakpoints;i++){
         breakpoint current_breakpoint = process_to_debug.array_of_breakpoints.arr_breakpoints[i];
-        print_breakpoint(&current_breakpoint);
+        if((current_breakpoint.type & INTERNAL) == 0){
+            print_breakpoint(&current_breakpoint);
+        }
     }
 }
 
@@ -273,12 +275,13 @@ int step_over_bp(pid_t pid){
         ptrace(PTRACE_POKEDATA,process_to_debug.pid,regs.rip-1,bp->orig_data);
         regs.rip -= 1;
         set_registers(process_to_debug.pid,&regs);
-
-        ptrace(PTRACE_SINGLESTEP,process_to_debug.pid,NULL,0);
-        int status;
-        waitpid(process_to_debug.pid, &status,0);
-        if(WIFSTOPPED(status)){
-            ptrace(PTRACE_POKEDATA,process_to_debug.pid,bp->abs_adress,current_opcodes);
+        if((bp->type & PERM) == 0){
+            ptrace(PTRACE_SINGLESTEP,process_to_debug.pid,NULL,0);
+            int status;
+            waitpid(process_to_debug.pid, &status,0);
+            if(WIFSTOPPED(status)){
+                delete_breakpoint(bp->index);
+            }
         }
         return 1;
     }
