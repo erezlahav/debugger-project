@@ -107,15 +107,10 @@ int next_instruction(int argc,char** argv){
     if( !is_call_instruction(*(long*)next_opcodes) ){
         step_into(argc,argv);
     }
-    else{ //call instruction in next opcode
-        printf("call instruction\n");
+    else{ //call instruction in next opcode so put software bp in after call instruction
         int call_instruction_len = get_length_of_instruction(next_opcodes,sizeof(next_opcodes),regs.rip);
-        int res = set_hardware_breakpoint(regs.rip + call_instruction_len);
-        if(!res){ //fail to put hw breakpoint, so creating a temporary internal software breakpoint
-            printf("fail hw breakpoint\n");
-            unsigned char type_of_bp = SOFTWARE | TEMP | INTERNAL;
-            create_breakpoint(NULL,0,regs.rip + call_instruction_len,type_of_bp);
-        }
+        unsigned char type_of_bp = SOFTWARE | TEMP | INTERNAL;
+        create_breakpoint(NULL,0,regs.rip + call_instruction_len,type_of_bp);
         continue_proc(0,NULL);
     }
 }

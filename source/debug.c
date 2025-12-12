@@ -70,19 +70,20 @@ int handle_command(char* command){
 }
 
 int handle_stopped_process(pid_t pid, int status){
-    printf("process stopped! , ");
+    process_to_debug.proc_state = STOPPED;
     struct user_regs_struct regs;
     get_registers(pid, &regs);
-    printf("in adress : %llx\n",regs.rip);
-    process_to_debug.proc_state = STOPPED;
+    printf("process stopped in adress : %llx",regs.rip);
     int signal = WSTOPSIG(status);
     if(signal == SIGTRAP){
         breakpoint* bp = get_breakpoint_by_addr(regs.rip-1); //null if no breakpoint match
         if(bp != NULL){
-            print_breakpoint(bp);
+            if((bp->type & INTERNAL) == 0){ //not an internal bp
+                printf(", hit bp number : %d",bp->index);
+            }
         }
-
     }
+    printf("\n");
 }
 
 

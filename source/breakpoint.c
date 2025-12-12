@@ -21,7 +21,6 @@ int ptrace_breakpoint(breakpoint* bp){
     if(bp->state != RESOLVED){
         return 0;
     }
-    printf("breakpoint adress : %lx\n",bp->abs_adress);
     if((bp->type & HARDWARE) ==  HARDWARE){
         set_hardware_breakpoint(bp->abs_adress);
     }
