@@ -60,56 +60,16 @@ int continue_proc(int argc,char** argv){
     return 0;
 }
 
-int exemine(int argc,char** argv){ // x/[COUNT][FORMAT][SIZE] ADDRESS 
-    /*
-    if(process_to_debug.proc_state == LOADED || process_to_debug.proc_state == NOT_LOADED){
-        printf("process is not running yet\n");
-        return 0;
-    }
-*/
-    if(argv[1] == NULL){
-        printf("no adress/register specified\n");
-        return 0;
-    }
-    int argv_len = strlen(argv[0]);
-    char* first_str = malloc(argv_len+1);
-    strncpy(first_str,argv[0],argv_len+1);
-    
-
-    typedef enum{
-        HEXADECIMAL,
-        DECIMAL,
-        INSTRUCTION,
-    }format;
-
-    int COUNT = 0; //default
-    format FORMAT = HEXADECIMAL; //default
-
-    int SIZE = sizeof(long); //default
-
-    if(strcmp(first_str,"x") == 0){ //x ADDRESS case 
-        if(argv[1][0] == '$'){ //register case
-            printf("register case\n");
-        }
-        else{ //adress case
-            printf("adress case\n");
-            long adress = convert_str_addr_to_long(argv[1]);
-            printf("adress : %lx\n",adress);
-        }
-    }
-
-}
-
 int disassemble_function(int argc,char** argv){
     symbol* input_symbol = find_symbol_by_name(process_to_debug.array_of_symbols,argv[1]);
     if(input_symbol == NULL){
         printf("symbol not exist\n");
         return 0;
     }
-   if(process_to_debug.proc_state == NOT_LOADED){
+    if(process_to_debug.proc_state == NOT_LOADED){
         static_disassemble_symbol(input_symbol);
-   }
-   else{
+    }
+    else{
         live_disassemble_symbol(input_symbol);
    }
 
