@@ -13,6 +13,22 @@
 extern debugee_process process_to_debug;
 
 
+
+long convert_str_addr_to_long(char* addr){
+    long adress;
+    char first_two_bytes[3];
+    strncpy(first_two_bytes,addr,2);
+    first_two_bytes[2] = '\x00';
+    printf("%s\n",first_two_bytes);
+    if(strcmp(first_two_bytes,"0x") == 0 || strcmp(first_two_bytes,"0X") == 0){ //hexadecimal adress
+        adress = strtol(addr,NULL,16);
+    }
+    else{
+        adress = strtol(addr,NULL,10);
+    }
+    return adress;
+}
+
 char* get_elf_path_by_pid(pid_t pid){
     char* elf_path = malloc(MAX_PATH_SIZE);
     char symlink_path[MAX_PATH_SIZE];

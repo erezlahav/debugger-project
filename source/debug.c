@@ -58,6 +58,10 @@ int handle_command(char* command){
     if(commands == NULL){
         return 0;
     }
+    if(commands[0][0] == 'x'){  //syntax like x/10i $rip
+        exemine(*argc,commands);
+        return 1;
+    }
 
     for(int i =0; table_commands[i].command!= NULL;i++){
         if(commands[0] == NULL){break;}
