@@ -67,10 +67,14 @@ void* get_data_array(int count, int size,long adress){
     void* data_ptr = malloc(size*count);
     int data_ptr_index = 0;
     while(data_ptr_index < count*size){
-        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,adress,NULL);
+        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,adress+data_ptr_index,NULL);
         if(res != -1 && errno == 0){
             memcpy(data_ptr + data_ptr_index,&res,size);
-            data_ptr_index += size;          
+            data_ptr_index += size;         
+        }
+        else{
+            free(data_ptr);
+            return NULL;
         }
     }
     return data_ptr;
@@ -81,7 +85,7 @@ void print_data_array(long adress, void* data,int count,int size,const char* for
     int data_index = 0;
     for(int i = 0; i < count;i++){
         printf("%lx: ",adress + data_index);
-        printf(format_string,*((long*)(data+data_index)));
+        printf(format_string,*((long*)(data+data_index))); //need fixing 
         printf("\n");
         data_index += size;
     }
@@ -157,13 +161,15 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
             adress = register_value;
         }
         else{ //adress case
-            printf("adress case\n");
             adress = convert_str_addr_to_long(argv[1]);
         }
 
 
         long* data = get_data_array(COUNT,SIZE,adress); //get data from adress
-        
+        if(data == NULL){
+            printf("can not access memory at: %lx\n",adress);
+            return 0;
+        }
         format_string = get_format_string(FORMAT,SIZE);
 
         if(data == -1 && errno != 0){ //error in fetching data from adress
@@ -172,6 +178,7 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         }
         else{ //success
             print_data_array(adress,data,COUNT,SIZE,format_string);
+            free(data);
         }
     }
 
@@ -189,6 +196,7 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         while(*after_slash >= '0' && *after_slash <= '9'){
             after_slash++;
         }
+        if(COUNT == 0){COUNT = 1;}
 
 
         SIZE = get_size(*after_slash);
@@ -207,10 +215,13 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
             adress = register_value;
         }
         else{ //adress case
-            printf("adress case\n");
             adress = convert_str_addr_to_long(argv[1]);
         }
         long* data = get_data_array(COUNT,SIZE,adress);
+        if(data == NULL){
+            printf("can not access memory at: %lx\n",adress);
+            return 0;
+        }
 
         switch (*after_slash) //deciding format
         {
@@ -227,14 +238,13 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
             FORMAT = HEXADECIMAL;
             break;
         }
-        
         format_string = get_format_string(FORMAT,SIZE);
         print_data_array(adress,data,COUNT,SIZE,format_string);
+        free(data);
 
 
     }
     free(first_str);
-    //free(data);
 }
 
 
