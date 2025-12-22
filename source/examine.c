@@ -81,11 +81,19 @@ void* get_data_array(int count, int size,long adress){
 }
 
 
+static __uint64_t get_mask_by_size(int size){
+    if(size >= 8) return ~0ULL;
+    
+    return (1ULL << (size*8))-1;
+}
+
+
 void print_data_array(long adress, void* data,int count,int size,const char* format_string){
     int data_index = 0;
+    __uint64_t mask = get_mask_by_size(size);
     for(int i = 0; i < count;i++){
         printf("%lx: ",adress + data_index);
-        printf(format_string,*((long*)(data+data_index))); //need fixing 
+        printf(format_string,*((long*)(data+data_index)) & mask); 
         printf("\n");
         data_index += size;
     }
