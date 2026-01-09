@@ -98,7 +98,8 @@ int debug_process(char* elf_path){
         if(process_to_debug.proc_state == NOT_LOADED || process_to_debug.proc_state == STOPPED){
             printf(">");
             fgets(input_command,INPUT_SIZE,stdin);
-            handle_command(input_command);
+            int res = handle_command(input_command);
+            if(!res) printf("command is not avalieble\n");
         }
         else if(process_to_debug.proc_state == RUNNING){
             waitpid(process_to_debug.pid,&status,0);

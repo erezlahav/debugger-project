@@ -8,6 +8,8 @@
 #include "examine.h"
 #include "utils.h"
 #include "debug.h"
+#include "disassembly.h"
+#include "breakpoint.h"
 
 extern debugee_process process_to_debug;
 
@@ -66,7 +68,14 @@ static unsigned long get_register(struct user_regs_struct* regs_ptr,char* str_re
 void* get_data_array(int count, int size,long adress){
     void* data_ptr = malloc(size*count);
     int data_ptr_index = 0;
+    breakpoint* bp = NULL;
     while(data_ptr_index < count*size){
+        bp = get_breakpoint_by_addr(adress+data_ptr_index);
+        if(bp != NULL){
+            unsigned char original_data = (unsigned char)(bp->orig_data & 0xFF);
+            memcpy(data_ptr + data_ptr_index,&original_data,1);
+            data_ptr_index++;
+        }
         long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,adress+data_ptr_index,NULL);
         if(res != -1 && errno == 0){
             memcpy(data_ptr + data_ptr_index,&res,size);
@@ -173,7 +182,7 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         }
 
 
-        long* data = get_data_array(COUNT,SIZE,adress); //get data from adress
+        void* data = get_data_array(COUNT,SIZE,adress); //get data from adress
         if(data == NULL){
             printf("can not access memory at: %lx\n",adress);
             return 0;
@@ -206,11 +215,15 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         }
         if(COUNT == 0){COUNT = 1;}
 
-
-        SIZE = get_size(*after_slash);
+        if(*after_slash != 'i'){
+            SIZE = get_size(*after_slash);
+            after_slash++;
+        }
+        else{
+            SIZE = 1;
+            FORMAT = INSTRUCTION;
+        }
         
-        after_slash++;
-
         if(argv[1][0] == '$'){ //register case
             int status = 0;
             ptrace(PTRACE_GETREGS,process_to_debug.pid,NULL,&regs);
@@ -225,29 +238,33 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         else{ //adress case
             adress = convert_str_addr_to_long(argv[1]);
         }
-        long* data = get_data_array(COUNT,SIZE,adress);
+        adress--;
+        void* data = get_data_array(COUNT,SIZE,adress);
         if(data == NULL){
             printf("can not access memory at: %lx\n",adress);
             return 0;
         }
-
-        switch (*after_slash) //deciding format
-        {
-        case 'd':
-            FORMAT = DECIMAL;
-            break;
-        case 'x':
-            FORMAT = HEXADECIMAL;
-            break;
-        case 'i':
-            FORMAT = INSTRUCTION;
-            break;
-        default:
-            FORMAT = HEXADECIMAL;
-            break;
+        if(FORMAT == INSTRUCTION){
+            print_disassemble_bytes((unsigned char*)data,SIZE * COUNT,adress);
         }
-        format_string = get_format_string(FORMAT,SIZE);
-        print_data_array(adress,data,COUNT,SIZE,format_string);
+        else{
+            switch (*after_slash) //deciding format
+            {
+            case 'd':
+                FORMAT = DECIMAL;
+                break;
+            case 'x':
+                FORMAT = HEXADECIMAL;
+                break;
+            default:
+                FORMAT = HEXADECIMAL;
+                break;
+            }
+        }
+        if(FORMAT != INSTRUCTION){
+            format_string = get_format_string(FORMAT,SIZE);
+            print_data_array(adress,data,COUNT,SIZE,format_string);
+        }
         free(data);
 
 
