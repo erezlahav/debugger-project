@@ -22,7 +22,7 @@ static enum format{
 
 
 static int get_size(char str_size){
-    int size_to_ret = sizeof(long);
+    int size_to_ret; 
 
     switch (str_size) //deciding size
     {
@@ -39,7 +39,7 @@ static int get_size(char str_size){
         size_to_ret = 1;
         break;
     default:
-        size_to_ret=sizeof(long);
+        size_to_ret=4;
         break;
     }
     return size_to_ret;
@@ -213,13 +213,13 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         while(*after_slash >= '0' && *after_slash <= '9'){
             after_slash++;
         }
-        if(COUNT == 0){COUNT = 1;}
+        if(COUNT == 0) COUNT = 1;
 
         if(*after_slash != 'i'){
             SIZE = get_size(*after_slash);
             after_slash++;
         }
-        else{
+        else{ //x/i adress/register format
             SIZE = 1;
             FORMAT = INSTRUCTION;
         }
@@ -238,14 +238,25 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         else{ //adress case
             adress = convert_str_addr_to_long(argv[1]);
         }
-        adress--;
-        void* data = get_data_array(COUNT,SIZE,adress);
+        if(get_breakpoint_by_addr(adress-1)) adress--; //not null
+
+
+
+        void* data = NULL;
+        if(FORMAT == INSTRUCTION){
+            data = get_data_array(COUNT*15,SIZE,adress);
+        }
+        else{
+            data = get_data_array(COUNT,SIZE,adress);
+        } 
+
+
         if(data == NULL){
             printf("can not access memory at: %lx\n",adress);
             return 0;
         }
         if(FORMAT == INSTRUCTION){
-            print_disassemble_bytes((unsigned char*)data,SIZE * COUNT,adress);
+            print_disassemble_bytes((unsigned char*)data,SIZE * COUNT * 15,adress,COUNT);
         }
         else{
             switch (*after_slash) //deciding format

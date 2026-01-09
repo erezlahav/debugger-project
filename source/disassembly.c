@@ -29,7 +29,7 @@ int live_disassemble_symbol(symbol* symbol){
         memcpy(bytes_array + current_index,&ptrace_res,sizeof(ptrace_res));
         current_index += sizeof(ptrace_res);
     }
-    print_disassemble_bytes(bytes_array,symbol_size,symbol_adress);
+    print_disassemble_bytes(bytes_array,symbol_size,symbol_adress,0);
     free(bytes_array);
 }
 
@@ -43,23 +43,26 @@ int static_disassemble_symbol(symbol* symbol){
         return 0;
     }
     unsigned char* bytes_array = get_bytes_array_code_from_symbol(symbol,elf_target_ptr);
-    print_disassemble_bytes(bytes_array,symbol->size,symbol->adress);
+    print_disassemble_bytes(bytes_array,symbol->size,symbol->adress,0);
 }
 
 
-void print_disassemble_bytes(unsigned char* bytes_array,size_t size,long start_addr){
-    printf("adress : %lx\n",start_addr);
-    printf("first byte : %x\n",*bytes_array);
-    printf("size : %ld\n",size);
+
+
+void print_disassemble_bytes(unsigned char* bytes_array,size_t size,long start_addr,int user_count){
     csh handle;
     cs_insn *insn;
     size_t count;
     cs_open(CS_ARCH_X86, CS_MODE_64, &handle);
     
     count = cs_disasm(handle, bytes_array, size, start_addr, 0, &insn);
-    printf("count : %ld\n",count);
+    if(user_count == 0) 
+        user_count = count;
+
+
+
     if (count > 0) {
-        for (size_t i = 0; i < count; i++) {
+        for (size_t i = 0; i < count && i < user_count; i++) {
             printf("0x%lx\t%s\t%s\n",insn[i].address,insn[i].mnemonic,insn[i].op_str);
         }
         cs_free(insn, count);
