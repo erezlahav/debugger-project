@@ -8,29 +8,16 @@
 #include "elf_parser.h"
 #include "breakpoint.h"
 #include "utils.h"
+#include "examine.h"
 extern debugee_process process_to_debug;
 
 int live_disassemble_symbol(symbol* symbol){
     size_t symbol_size = symbol->size;
     long symbol_adress = symbol->adress;
-    unsigned char* bytes_array = malloc(symbol_size);
-    long current_index = 0;
-    long ptrace_res = 0;
-    breakpoint* curr_bp = NULL;
-    while(current_index < symbol_size){
-        curr_bp = get_breakpoint_by_addr(symbol_adress+current_index);
-        if(curr_bp == NULL){
-            ptrace_res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,symbol_adress+current_index,NULL);
-        }
-        else{
-            ptrace_res = curr_bp->orig_data;
-        }
-        
-        memcpy(bytes_array + current_index,&ptrace_res,sizeof(ptrace_res));
-        current_index += sizeof(ptrace_res);
-    }
-    print_disassemble_bytes(bytes_array,symbol_size,symbol_adress,0);
-    free(bytes_array);
+    data_read* data_read_ptr = get_data_array(symbol_size,1,symbol_adress);
+    print_disassemble_bytes(data_read_ptr->data,data_read_ptr->bytes_read,symbol_adress,0);
+    free(data_read_ptr->data);
+    free(data_read_ptr);
 }
 
 

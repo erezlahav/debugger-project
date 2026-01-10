@@ -65,28 +65,30 @@ static unsigned long get_register(struct user_regs_struct* regs_ptr,char* str_re
 
 
 
-void* get_data_array(int count, int size,long adress){
-    void* data_ptr = malloc(size*count);
-    int data_ptr_index = 0;
+
+data_read* get_data_array(int count, int size,long adress){
+    data_read* data_struct_ptr = malloc(sizeof(data_read));
+    data_struct_ptr->data = malloc(size * count);
+
+    data_struct_ptr->bytes_read = 0;
     breakpoint* bp = NULL;
-    while(data_ptr_index < count*size){
-        bp = get_breakpoint_by_addr(adress+data_ptr_index);
+    while(data_struct_ptr->bytes_read < (size_t)(count*size)){
+        bp = get_breakpoint_by_addr(adress+data_struct_ptr->bytes_read);
         if(bp != NULL){
             unsigned char original_data = (unsigned char)(bp->orig_data & 0xFF);
-            memcpy(data_ptr + data_ptr_index,&original_data,1);
-            data_ptr_index++;
+            memcpy(data_struct_ptr->data + data_struct_ptr->bytes_read,&original_data,1);
+            data_struct_ptr->bytes_read++;
         }
-        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,adress+data_ptr_index,NULL);
+        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,adress+data_struct_ptr->bytes_read,NULL);
         if(res != -1 && errno == 0){
-            memcpy(data_ptr + data_ptr_index,&res,size);
-            data_ptr_index += size;         
+            memcpy(data_struct_ptr->data + data_struct_ptr->bytes_read,&res,size);
+            data_struct_ptr->bytes_read += size;         
         }
         else{
-            free(data_ptr);
-            return NULL;
+            break;
         }
     }
-    return data_ptr;
+    return data_struct_ptr;
 }
 
 
@@ -97,12 +99,12 @@ static __uint64_t get_mask_by_size(int size){
 }
 
 
-void print_data_array(long adress, void* data,int count,int size,const char* format_string){
+void print_data_array(long adress, data_read* data_read_ptr,int size,const char* format_string){
     int data_index = 0;
     __uint64_t mask = get_mask_by_size(size);
-    for(int i = 0; i < count;i++){
+    for(size_t i = 0; i < data_read_ptr->bytes_read;i++){
         printf("%lx: ",adress + data_index);
-        printf(format_string,*((long*)(data+data_index)) & mask); 
+        printf(format_string,*((long*)(data_read_ptr->data+data_index)) & mask); 
         printf("\n");
         data_index += size;
     }
@@ -182,21 +184,15 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         }
 
 
-        void* data = get_data_array(COUNT,SIZE,adress); //get data from adress
-        if(data == NULL){
-            printf("can not access memory at: %lx\n",adress);
+        data_read* data_read_ptr = get_data_array(COUNT,SIZE,adress); //get data from adress
+        if(data_read_ptr->bytes_read == 0){
+            printf("could not read bytes from adress : %lx",adress);
             return 0;
         }
         format_string = get_format_string(FORMAT,SIZE);
-
-        if(data == -1 && errno != 0){ //error in fetching data from adress
-            printf("ptrace failed");
-            return 0;
-        }
-        else{ //success
-            print_data_array(adress,data,COUNT,SIZE,format_string);
-            free(data);
-        }
+        print_data_array(adress,data_read_ptr,SIZE,format_string);
+        free(data_read_ptr->data);
+        free(data_read_ptr);
     }
 
 
@@ -242,21 +238,21 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
 
 
 
-        void* data = NULL;
+        data_read* data_read_ptr = NULL;
         if(FORMAT == INSTRUCTION){
-            data = get_data_array(COUNT*15,SIZE,adress);
+            data_read_ptr = get_data_array(COUNT*15,SIZE,adress);
         }
         else{
-            data = get_data_array(COUNT,SIZE,adress);
+            data_read_ptr = get_data_array(COUNT,SIZE,adress);
         } 
 
 
-        if(data == NULL){
-            printf("can not access memory at: %lx\n",adress);
+        if(data_read_ptr->bytes_read == 0){
+            printf("could not read bytes from adress : %lx",adress);
             return 0;
         }
         if(FORMAT == INSTRUCTION){
-            print_disassemble_bytes((unsigned char*)data,SIZE * COUNT * 15,adress,COUNT);
+            print_disassemble_bytes((unsigned char*)data_read_ptr->data,SIZE * COUNT * 15,adress,COUNT);
         }
         else{
             switch (*after_slash) //deciding format
@@ -274,10 +270,11 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         }
         if(FORMAT != INSTRUCTION){
             format_string = get_format_string(FORMAT,SIZE);
-            print_data_array(adress,data,COUNT,SIZE,format_string);
+            print_data_array(adress,data_read_ptr,SIZE,format_string);
         }
-        free(data);
 
+        free(data_read_ptr->data);
+        free(data_read_ptr);
 
     }
     free(first_str);
