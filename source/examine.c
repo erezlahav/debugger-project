@@ -66,23 +66,30 @@ static unsigned long get_register(struct user_regs_struct* regs_ptr,char* str_re
 
 
 
-data_read* get_data_array(int count, int size,long adress){
+data_read* get_data_array(size_t count, size_t size,long adress){
     data_read* data_struct_ptr = malloc(sizeof(data_read));
     data_struct_ptr->data = malloc(size * count);
-
+    printf("count : %ld\n",count);
     data_struct_ptr->bytes_read = 0;
     breakpoint* bp = NULL;
-    while(data_struct_ptr->bytes_read < (size_t)(count*size)){
+    size_t total_size = count * size;
+    while(data_struct_ptr->bytes_read < total_size){
         bp = get_breakpoint_by_addr(adress+data_struct_ptr->bytes_read);
         if(bp != NULL){
             unsigned char original_data = (unsigned char)(bp->orig_data & 0xFF);
             memcpy(data_struct_ptr->data + data_struct_ptr->bytes_read,&original_data,1);
             data_struct_ptr->bytes_read++;
         }
-        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,adress+data_struct_ptr->bytes_read,NULL);
+        long res = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,(void*)(adress+data_struct_ptr->bytes_read),NULL);
         if(res != -1 && errno == 0){
-            memcpy(data_struct_ptr->data + data_struct_ptr->bytes_read,&res,size);
-            data_struct_ptr->bytes_read += size;         
+            if(data_struct_ptr->bytes_read + size >= total_size){
+                memcpy(data_struct_ptr->data + data_struct_ptr->bytes_read,&res,total_size - data_struct_ptr->bytes_read);
+                data_struct_ptr->bytes_read += total_size - data_struct_ptr->bytes_read;
+            }
+            else{
+                memcpy(data_struct_ptr->data + data_struct_ptr->bytes_read,&res,size);
+                data_struct_ptr->bytes_read += size;
+            }     
         }
         else{
             break;
@@ -205,7 +212,11 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
             return 0;
         }
         char* after_slash = first_str + 2;
-        COUNT = atoi(after_slash);
+        COUNT = strtol(after_slash,NULL,10);
+        if(errno == ERANGE){
+            printf("long overflow\n");
+            return 0;
+        }
         while(*after_slash >= '0' && *after_slash <= '9'){
             after_slash++;
         }

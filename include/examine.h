@@ -8,4 +8,4 @@ typedef struct{
 
 
 int exemine(int argc,char** argv);
-data_read* get_data_array(int count, int size,long adress);
+data_read* get_data_array(size_t count, size_t size,long adress);
