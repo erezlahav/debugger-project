@@ -13,6 +13,7 @@
 #include "commands.h"
 #include "breakpoint.h"
 #include "hw_breakpoints.h"
+#include "bt.h"
 
 extern debugee_process process_to_debug;
 
@@ -30,6 +31,7 @@ const command_table table_commands[] = {
     {"run",run_process,"run the current process after breaking on stop signal before main"},
     {"si",step_into,"step into instruction(executes one instruction)"},
     {"ni",next_instruction,"step over instruction(going over functions and not into)"},
+    {"bt",print_backtrace,"printing backtrace of the function"},
     {NULL,NULL,NULL}
 };
 

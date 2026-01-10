@@ -69,7 +69,6 @@ static unsigned long get_register(struct user_regs_struct* regs_ptr,char* str_re
 data_read* get_data_array(size_t count, size_t size,long adress){
     data_read* data_struct_ptr = malloc(sizeof(data_read));
     data_struct_ptr->data = malloc(size * count);
-    printf("count : %ld\n",count);
     data_struct_ptr->bytes_read = 0;
     breakpoint* bp = NULL;
     size_t total_size = count * size;
@@ -109,7 +108,7 @@ static __uint64_t get_mask_by_size(int size){
 void print_data_array(long adress, data_read* data_read_ptr,int size,const char* format_string){
     int data_index = 0;
     __uint64_t mask = get_mask_by_size(size);
-    for(size_t i = 0; i < data_read_ptr->bytes_read;i++){
+    while(data_index < data_read_ptr->bytes_read){
         printf("%lx: ",adress + data_index);
         printf(format_string,*((long*)(data_read_ptr->data+data_index)) & mask); 
         printf("\n");

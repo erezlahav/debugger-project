@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <sys/types.h>
+
+
 #define MEMORY_MAPPINGS_SIZE 1024
 
 typedef enum{
