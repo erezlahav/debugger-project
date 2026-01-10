@@ -233,13 +233,24 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
         if(argv[1][0] == '$'){ //register case
             int status = 0;
             ptrace(PTRACE_GETREGS,process_to_debug.pid,NULL,&regs);
-            strncpy(register_name,argv[1]+1,sizeof(register_name));
+            char* reg_start = argv[1] + 1;
+            int register_name_index = 0;
+            while(reg_start != NULL && (*reg_start != '+' &&  *reg_start != '-') && register_name_index < sizeof(register_name)){
+                register_name[register_name_index] = *reg_start;
+                register_name_index++;
+                reg_start++;
+            }
             register_name[sizeof(register_name)] = '\x00';
+            int offset = 0;
+            if(*reg_start == '+' || *reg_start == '-'){
+                offset = strtol(reg_start+1,NULL,10);
+                if(errno == ERANGE) offset = 0;
+            }
             unsigned long register_value = get_register(&regs,register_name,&status);
             if(!register_value && status == -1){ //error in get registers
                 return 0;
             }
-            adress = register_value;
+            adress = register_value + offset;
         }
         else{ //adress case
             adress = convert_str_addr_to_long(argv[1]);

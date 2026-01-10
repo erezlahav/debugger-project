@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "elf_parser.h"
 
 long convert_str_addr_to_long(char* addr);
 char* get_elf_path_by_pid(pid_t pid);
@@ -8,3 +8,4 @@ char* get_full_path(char* path);
 char* get_full_path_from_envs(char** nullble_env_paths,char* target_file);
 char** parser(char* str,char* delim);
 int free_double_str_ptr(char** env_paths);
+symbol* get_symbol_by_adress(unsigned long adress);

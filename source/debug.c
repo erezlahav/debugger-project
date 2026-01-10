@@ -13,7 +13,6 @@
 #include "commands.h"
 #include "breakpoint.h"
 #include "hw_breakpoints.h"
-#include "bt.h"
 
 extern debugee_process process_to_debug;
 

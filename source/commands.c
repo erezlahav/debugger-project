@@ -137,6 +137,28 @@ int cmd_delete(int argc,char** argv){
 
 
 
+int print_backtrace(int argc,char** argv){
+    struct user_regs_struct regs;
+    get_registers(process_to_debug.pid, &regs);
+    unsigned long current_rbp = regs.rbp;
+    unsigned long current_rip = regs.rip;
+    symbol* current_symbol = get_symbol_by_adress(current_rip);
+    int current_function_index = 0;
+    printf("#%d   %s\n",current_function_index,current_symbol->name);
+    while(current_rbp != 0){
+        long return_adress = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,(void*)(current_rbp+8),NULL);
+        current_rbp = ptrace(PTRACE_PEEKDATA,process_to_debug.pid,(void*)(current_rbp),NULL);
+        current_symbol = get_symbol_by_adress(return_adress);
+        if(current_symbol == NULL) break;
+        current_function_index++;
+        printf("#%d   %s\n",current_function_index,current_symbol->name);
+    }
+}
+
+
+
+
+
 
 
 int exit_debugger(int argc,char** argv){
