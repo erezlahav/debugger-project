@@ -13,3 +13,12 @@ My debugger is a GDB-like debugger written in C for Linux x86_64, supporting bre
 - **ASLR Support:** Dynamically resolve memory addresses by parsing /proc/<pid>/maps
 - **Disassembly:** Function-level disassembly or arbitrary memory ranges (e.g., x/10i $rip)
 - **Soon Reverse Debugging:** Rewind execution using Copy-On-Write snapshots
+
+
+### Dependencies
+
+This project depends on Capstone disassembly framework.
+
+On Ubuntu / Debian:
+```bash
+sudo apt install libcapstone4 libcapstone-dev
