@@ -15,7 +15,7 @@ My debugger is a GDB-like debugger written in C for Linux x86_64, supporting bre
 - **Soon Reverse Debugging:** Rewind execution using Copy-On-Write snapshots
 
 
-### Dependencies
+# Dependencies
 
 This project depends on Capstone disassembly framework.
 
