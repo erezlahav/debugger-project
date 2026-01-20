@@ -211,6 +211,7 @@ int exemine(int argc,char** argv){ // x/[COUNT][SIZE][FORMAT] ADDRESS/REGISTER
             return 0;
         }
         char* after_slash = first_str + 2;
+        errno = 0;
         COUNT = strtol(after_slash,NULL,10);
         if(errno == ERANGE){
             printf("long overflow\n");
